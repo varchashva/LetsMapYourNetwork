@@ -6,7 +6,7 @@ It is utmost important for any security engineer to understand their network fir
 
 ##### BOTTOM LINE - YOU CAN'T SECURE WHAT YOU ARE NOT AWARE OF. #####
 
-Let’s Map Your Network (LMYN) aims to provide a easy to use interface to security engineer and network administrator to have their network in graphical form with zero manual error, where a node represents a system and relationship between nodes represent the connection. To achieve this it uses the basic network commands such as traceroute, ping scan etc.
+Let’s Map Your Network (LMYN) aims to provide an easy to use interface to security engineer and network administrator to have their network in graphical form with zero manual error, where a node represents a system and relationship between nodes represent the connection. To achieve this it uses the basic network commands such as traceroute, ping scan etc.
 
 Below are the modules in LMYN to perform the task of mapping
 
@@ -34,7 +34,7 @@ Below technologies have been used in the tool:
 
 #### For Linux User (Note - Below commands have been provided for Debian-based linux. For other versions of Linux change all commands accordingly) #### 
 
-1. Download LMYN from github and extract all to a directory like /opt/LMYN ($LMYN_HOME)
+1. Download LMYN from GitHub and extract all to a directory like /opt/LMYN ($LMYN_HOME)
 2. Install python: sudo apt-get install python2.7
 3. Install nmap: sudo apt-get install nmap 
 4. Install Java Development Kit
@@ -53,12 +53,12 @@ Below technologies have been used in the tool:
    - Browse to Neo4j web console (http://localhost:7474) to change the default password from neo4j to Neo4j
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation) for any troubleshooting, if required 
 6. Run command sudo $LMYN/LetsMapYourNetwork/Install_LMYN.sh
-7. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver
+7. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver --insecure
 8. Open http://localhost:8000/core in browser and explore the tool
 
 #### For Windows User #### 
 
-1. Download LMYN from github and extract all. It is recommended to extract within Python home directory for e.g. C:\python\LMYN ($LMYN_HOME)
+1. Download LMYN from GitHub and extract all. It is recommended to extract within Python home directory for e.g. C:\python\LMYN ($LMYN_HOME)
 2. Install python 
    - Go to python [download](https://www.python.org/downloads/release/python-2715) section and click on [Windows x86 MSI installer for 32-bit](https://www.python.org/ftp/python/2.7.15/python-2.7.15.msi) user OR [Windows x86-64 MSI installer](https://www.python.org/ftp/python/2.7.15/python-2.7.15.amd64.msi) for 64-bit user 
    - Install the downloaded python file with all default settings
@@ -80,7 +80,7 @@ Below technologies have been used in the tool:
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation/) for any troubleshooting, if required 
 7. Copy Install_LMYN.bat to Python home directory for e.g. C:\python and run Install_LMYN.bat with administrative privileges 
    - Open command prompt with administrative privileges and browse to Python home directory for e.g. cd C:\python
-   - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver
+   - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver --insecure
 8. Open http://localhost:8000/core in browser and explore the tool
 
 ### HOW TO USE IT ###
