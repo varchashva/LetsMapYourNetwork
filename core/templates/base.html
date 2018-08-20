@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{title}}</title>
+
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.5 -->
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/static/dash/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="/static/dash/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Left side column. contains the logo and sidebar -->
+    <aside class="main-sidebar">
+        <!-- sidebar: style can be found in sidebar.less -->
+        <div class="sidebar" id="scrollspy">
+            <span class="logo-mini"><b>Let's Map Your Network</b></span>
+            <!-- sidebar menu: : style can be found in sidebar.less -->
+            <ul class="nav sidebar-menu">
+                <li class="active"><a href="/core/{{project_id}}/action?action=findme"><i class="glyphicon glyphicon-info-sign"></i> Find Me</a></li>
+
+                <li><a href="/core/{{project_id}}/action?action=roam"><i class="glyphicon glyphicon-tasks"></i> Roam Around</a></li>
+                <li>
+                    <form action="/core/{{project_id}}/action" method="POST">
+                        {{gotoform}}
+                        <!--<input id="gototarget" type="text" name="gototarget" value="google.com">-->
+                        <!--<input id="action" type="hidden" name="goto" value="goto">-->
+                        <input type="submit" value="Go To">
+                    </form>
+                    <i class="fa fa-certificate"></i>
+                </li>
+
+
+                <li> <form action="/core/{{project_id}}/action" method="POST">
+                    {{scanform}}
+                    <!--<input id="gototarget" type="text" name="gototarget" value="google.com">-->
+                    <!--<input id="action" type="hidden" name="goto" value="goto">-->
+                    <input type="submit" value="Scan">
+                </form><i class="fa fa-align-justify"></i>
+                </li>
+
+                <li><form action="/core/{{project_id}}/action" method="POST">
+                    {{projectform}}
+                    <!--<input id="gototarget" type="text" name="gototarget" value="google.com">-->
+                    <!--<input id="action" type="hidden" name="goto" value="goto">-->
+                    <input type="submit" value="Select">
+                </form><i class="fa fa-flag"></i>
+                </li>
+
+                <li>
+                    <form action="/core/{{project_id}}/action" method="POST">
+                    {{newprojectform}}
+                    <!--<input id="gototarget" type="text" name="gototarget" value="google.com">-->
+                    <!--<input id="action" type="hidden" name="goto" value="goto">-->
+                    <input type="submit" value="Create">
+                    </form>
+                </li>
+
+                <li class="active"><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-info-sign"></i> Clear All</a></li>
+            </ul>
+        </div>
+    </aside>
+
+</head>
+{% block content %}
+{% endblock %}
+</html>

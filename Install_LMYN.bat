@@ -1,0 +1,9 @@
+python -m pip install python-nmap
+python -m pip install django
+python -m pip install neomodel
+python -m pip install django-neomodel
+python -m pip install bulbs
+python -m pip install scapy
+python -m pip install netifaces
+python -m pip install netaddr
+python -m pip install ipaddress
