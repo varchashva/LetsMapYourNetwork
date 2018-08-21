@@ -19,42 +19,14 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from .models import Machine
 
+import neomodel
+
+
+
 import nmap
 
 def index(request):
     return redirect("/core/default/action")
-
-
-# def project(request,project_id):
-#     # Removing everything as of now
-#     for allnodes in Machine.nodes:
-#         allnodes.delete()
-#
-#
-#     print "All nodes deleted successfully"
-#
-# #     output = getlocalinfo()
-# #
-# #     localip = output.split("#")[0]
-# #     localhostname = output.split("#")[1]
-# #     subnet = output.split("#")[2]
-# #
-# #     gateway = output.split("#")[3]
-# #     gatewayhostname = output.split("#")[4]
-# # # { id : 0, group : 'source', label : '192.168.1.21'},{ id : 1, group : 'device', label : '192.168.1.1'},
-# #     # #{ from: 1, to: 0 },
-# #     localnode = Machine(ip=localip, subnet=subnet, hostname=localhostname)
-# #     localnode.save()
-# #
-# #
-# #     gatewaynode = Machine(ip=gateway, subnet=subnet, hostname=gatewayhostname)
-# #     gatewaynode.save()
-# #
-# #     localnode.connected.connect(gatewaynode)
-#
-#     context = {"myinfo": "project", "project_id": project_id}
-#     return render(request, 'project.html', context)
-
 
 def action(request, project_id):
 
@@ -68,17 +40,17 @@ def action(request, project_id):
     print "Current Project: " + project_id
     print "Project Count: " + str(len(projectform.PROJECT_CHOICES))
 
-    projectAvailble = False
-    for i in range(0, len(projectform.PROJECT_CHOICES)):
-        key, value = projectform.PROJECT_CHOICES[i]
-        if project_id == key:
-            print "Got Project: " + project_id
-            projectAvailble = True
-            break
-
-    if not projectAvailble:
-        print "Info: Project Not Found. Returning to default..."
-        return redirect("/core/default/action")
+    # projectAvailble = False
+    # for i in range(0, len(projectform.PROJECT_CHOICES)):
+    #     key, value = projectform.PROJECT_CHOICES[i]
+    #     if project_id == key:
+    #         print "Got Project: " + project_id
+    #         projectAvailble = True
+    #         break
+    #
+    # if not projectAvailble:
+    #     print "Info: Project Not Found. Returning to default..."
+    #     return redirect("/core/default/action")
 
     if request.method == "POST":
         print "Info: Request is POST"
@@ -103,7 +75,8 @@ def action(request, project_id):
             newprojectform = NewProjectForm(request.POST)
             # scanform = ScanForm()
             # gotoform = GoToForm()
-            # projectform = ProjectForm()
+            # projectform = ProjectForm(request.POST)
+            print "In new project create block"
             if newprojectform.is_valid():
                 project_id = str(newprojectform.cleaned_data["newproject"])
                 action = "create"
@@ -113,23 +86,17 @@ def action(request, project_id):
             # scanform = ScanForm()
             # gotoform = GoToForm()
             # newprojectform = NewProjectForm()
+
             if projectform.is_valid():
                 action="select"
                 project_id = str(projectform.cleaned_data["project"])
                 print "Project: " + project_id
-
     else:
         action=request.GET.get("action","show")
         # scanform = ScanForm()
         # gotoform = GoToForm()
         # projectform = ProjectForm()
         # newprojectform = NewProjectForm()
-
-    #
-    # for allnodes in Machine.nodes:
-    #     allnodes.delete()
-    #
-    # print "Delete successfully"
     print "Action is : " + action
 
     if "findme" in action:
@@ -190,6 +157,9 @@ def action(request, project_id):
 
         # project, test = projectform.PROJECT_CHOICES[project_id-1]
         output = getlocalinfo(project_id)
+        # neomodel.db.set_connection('bolt://neo4j:Neo4j@localhost:7687')
+        # neomodel.Database.__init__()
+        print "Reinitialized DB"
         # print "Project Count in Create: " + str(len(projectform.PROJECT_CHOICES))
         context = {"project_id": project_id, "newprojectform": newprojectform,
                    "gotoform": gotoform,
