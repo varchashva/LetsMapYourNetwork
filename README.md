@@ -96,3 +96,5 @@ Below technologies have been used in the tool:
 1. More interactive actions for node 
 2. System fingerprinting
 3. Grouping of systems – like same subnet IPs as one group
+
+Shoot any suggestion/complain/bug to **varchashva [at] gmail [dot] com**
