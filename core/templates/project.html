@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/static/dash/css/AdminLTE.min.css">
     <link rel="stylesheet" href="/static/dash/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
-
+    <script src="/static/LetsMapYourNetwork/src/utils/ipaddr.js"></script>
     <script src="/static/LetsMapYourNetwork/src/sigma.core.js"></script>
     <script src="/static/LetsMapYourNetwork/src/conrad.js"></script>
     <script src="/static/LetsMapYourNetwork/src/utils/sigma.utils.js"></script>
@@ -55,6 +55,7 @@
     <script src="/static/LetsMapYourNetwork/src/misc/sigma.misc.drawHovers.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.parsers.json/sigma.parsers.json.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.neo4j.cypher/sigma.neo4j.cypher.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
 
 
     <script src="/static/plugins/jQuery/jQuery-2.1.4.min.js"></script>
@@ -63,6 +64,7 @@
     <script src="/static/dash/js/app.min.js"></script>
     <script src="/static/plugins/slimScroll/jquery.slimscroll.min.js"></script>
     <script src="/static/js/docs.js"></script>
+
 </head>
 
 <!--start of main design-->
@@ -71,7 +73,7 @@
 <div class="wrapper">
     <header class="main-header">
         <a href="" class="logo">
-            <span class="logo-mini">Let's Map<b>YOUR</b>Network</span>
+            <span class="logo-mini">LM<b>Y</b>N</span>
             <span class="logo-lg">Let's Map<b> YOUR </b>Network</span>
         </a>
 
@@ -101,6 +103,22 @@
 <aside class="main-sidebar">
     <div class="sidebar" id="scrollspy">
         <ul class="nav sidebar-menu">
+            <li class="treeview">
+                <a href="javascript::;"><i class="glyphicon glyphicon-upload" style="color: rgb(184, 199, 206);" ></i>Map CMDB</a>
+                <ul class="nav treeview-menu">
+                    <div class="input-group" >
+                        <form id="cmdbform" class="md-form" enctype="multipart/form-data" action="/core/{{project_id}}/action" method="POST">
+                            <div class="input-group-prepend" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" >
+                               <input type="checkbox" name="beintrusive" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" > Be INTRUSIVE
+                                <input type="file" class="btn btn-primary" name="cmdbfilepath" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;display:inline;width:95px;">
+                                <input type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Map CMDB">
+
+                            </div>
+                        </form>
+                    </div>
+                </ul>
+            </li>
+
             <li><a href="/core/{{project_id}}/action?action=findme"><i class="glyphicon glyphicon-search"></i> Find Me</a></li>
             <li><a href="/core/{{project_id}}/action?action=roam"><i class="glyphicon glyphicon-globe"></i> Roam Around</a></li>
 
@@ -125,7 +143,7 @@
                     <div class="input-group" >
                         <form action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
-                                 {{scanform}}
+                                {{scanform}}
                                 <input type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Scan">
                             </div>
 
@@ -153,7 +171,6 @@
                     <div class="input-group">
                         <form action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
-
                                 {{projectform}}
                                 <input type="submit" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Select">
                             </div>
@@ -166,12 +183,12 @@
 
             <li style="color: rgb(184, 199, 206);">__________________________________________________________</li>
 
-            <li class="treeview">
-                <a><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>
-                <ul class="nav treeview-menu1"><a href=""><div id="hostname"></div></a></ul>
-                <ul class="nav treeview-menu1"><a href=""><div id="ip"></div></a></ul>
-                <ul class="nav treeview-menu1"><a href=""><div id="tag"></div></a> </ul>
-                <ul class="nav treeview-menu1"><a href=""><div id="distance"></div></a> </ul>
+            <li class="treeview active" >
+                <a href="javascript::;"><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>
+                <ul class="treeview-menu"><a href=""><div id="hostname"></div></a><br>
+                   <a href=""><div id="ip"></div></a><br>
+                        <a href=""><div id="tag"></div></a><br>
+                        <a href=""><div id="distance"></div></a></ul>
             </li>
             <li style="color: rgb(184, 199, 206);">__________________________________________________________</li>
         </ul>
@@ -198,7 +215,7 @@
 <script type="application/javascript">
      sigma.neo4j.cypher(
             { url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j' },
-            'MATCH (n {tag:"{{project_id}}"}) OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m LIMIT 100',
+            'MATCH (n) WHERE n.tag =~ ".*{{project_id}}.*" OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m LIMIT 100',
             { container: 'graph-container' } ,
             function(s) {
                 console.log('Number of nodes: '+ s.graph.nodes().length);
@@ -209,8 +226,25 @@
   <!--console.log(e.type, e.data.node.label, e.data.captor);-->
 <!--});-->
 
+   // Initialize the dragNodes plugin:
+var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
+
+dragListener.bind('startdrag', function(event) {
+  console.log(event);
+});
+dragListener.bind('drag', function(event) {
+  console.log(event);
+});
+dragListener.bind('drop', function(event) {
+  console.log(event);
+});
+dragListener.bind('dragend', function(event) {
+  console.log(event);
+});
+
    s.bind('overNode clickNode', function(e) {
-  console.log(e.type, e.data.node.label, e.data.captor);
+   <!--console.log(s.renderers[0]);-->
+  <!--console.log(e.type, e.data.node.label, e.data.captor);-->
   <!--This is where to handle the click function-->
   <!--location.reload();-->
 
@@ -218,12 +252,52 @@
     var ip =   "<i class='glyphicon glyphicon-certificate' style='color: rgb(184, 199, 206);'></i> IP: " + e.data.node.neo4j_data.ip;
     var tag = "<i class='glyphicon glyphicon-tag' style='color: rgb(184, 199, 206);'></i> TAG: " + e.data.node.neo4j_data.tag;
     var distance = "<i class='glyphicon glyphicon-signal' style='color: rgb(184, 199, 206);'></i> DISTANCE: " + e.data.node.neo4j_data.distance;
+    <!--if (ipaddr.parse(e.data.node.neo4j_data.ip).range().localeCompare("private") == 0)-->
+    <!--{-->
+        <!--e.data.node.color = '#222D32';-->
+    <!--}-->
+    <!--else-->
+    <!--{-->
+        <!--e.data.node.color = '#00FF00';-->
+    <!--}-->
+    e.data.node.color = '#222D32';
+    e.data.node.size = e.data.node.maxNodeSize;
+    <!--console.log(e.data.node.neo4j_data.ip);-->
+    <!--console.log(ipaddr.parse(e.data.node.neo4j_data.ip).range());-->
 
-
+    e.data.node.borderWidth = 5;
+    e.data.node.borderColor = '#20A8D8';
+    <!--e.data.node.refresh();-->
+    s.refresh();
     $('#hostname').html(hostname);
     $('#ip').html(ip);
     $('#tag').html(tag);
     $('#distance').html(distance);
+});
+s.bind('outNode', function(e) {
+   var origin = e.data.node.neo4j_data.tag.split("#")[1];
+                var reachability = e.data.node.neo4j_data.tag.split("#")[2];
+                var nodecolor = "#222D32";
+                console.log(origin);
+                console.log(reachability);
+                if (reachability.localeCompare("EXTERNAL") == 0){e.data.node.color = "#20A8D8";}
+                else
+                {
+                    if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
+                    {e.data.node.color = "#3333ff";}
+                    else if (origin.localeCompare("CMDB") == 0)
+                    {e.data.node.color = "#00b300";}
+                    else if (origin.localeCompare("DISCOVERED") == 0)
+                    {e.data.node.color = "#e60000";}
+                }
+   e.data.node.borderWidth = 3;
+   e.data.node.borderColor = '#222D32';
+   e.data.node.size = e.data.node.minNodeSize;
+   <!--e.data.node.refresh();-->
+   s.refresh();
+     <!--console.log(e.type, e.data.node.label, e.data.node.color);-->
+
+
 });
             }
     );
