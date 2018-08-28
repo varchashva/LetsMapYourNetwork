@@ -11,7 +11,7 @@ import ipaddress
 import netaddr
 import sys
 
-from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm
+from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm
 
 from django import forms
 
@@ -36,7 +36,7 @@ def action(request, project_id):
     scanform = ScanForm()
     projectform = ProjectForm()
     newprojectform = NewProjectForm()
-    cmdbform = CMDBScanForm()
+    
     action = "show"
 
     # validation of project_id
@@ -114,23 +114,23 @@ def action(request, project_id):
         #     project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
         # print "Project in FindMe: "+ project
         output = getlocalinfo(project_id)
-        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform}
         return render(request, 'project.html', context)
     elif "goto" in action:
         # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
         gotocelery = traceroute(goto_target,33434,30,project_id)
         #output = gotocelery.get()
-        context = {"project_id": project_id, "newprojectform":newprojectform,  "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id, "newprojectform":newprojectform,  "gotoform":gotoform,"scanform":scanform,"projectform":projectform}
         return render(request, 'project.html', context)
     elif "roam" in action:
         # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
         myneighbours = roam(project_id)
-        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform}
         return render(request, 'project.html', context)
     elif "clear" in action:
         # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
         clear(project_id)
-        context = {"project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform}
         return render(request, 'project.html', context)
     elif "scan" in action:
         # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
@@ -156,7 +156,7 @@ def action(request, project_id):
                 print "performing traceroute to " + ip
                 traceroute(ip,33434,30,project_id)
         context = { "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
-                   "projectform": projectform,"cmdbform":cmdbform}
+                   "projectform": projectform}
         return render(request, 'project.html', context)
     elif "select" in action:
         # print "In Select: " + str(projectform.PROJECT_CHOICES)
@@ -171,7 +171,7 @@ def action(request, project_id):
         # project_id = projectform.PROJECT_CHOICES.index(projectform.PROJECT_CHOICES[str(project)])
         # print "Project and ID: " + project + str(project_id)
         context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
-                   "projectform": projectform,"cmdbform":cmdbform}
+                   "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
         # return render(request, 'project.html', context)
     elif "create" in action:
@@ -192,7 +192,7 @@ def action(request, project_id):
         context = {"project_id": project_id, "newprojectform": newprojectform,
                    "gotoform": gotoform,
                    "scanform": scanform,
-                   "projectform": projectform,"cmdbform":cmdbform}
+                   "projectform": projectform}
         # return render(request, 'project.html', context)
         return redirect("/core/" + str(project_id) + "/action")
     elif "cmdb" in action:
@@ -242,7 +242,7 @@ def action(request, project_id):
         return redirect("/core/" + str(project_id) + "/action")
     else:
         # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
-        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform}
         return render(request, 'project.html', context)
 
 def clear(project_id):
