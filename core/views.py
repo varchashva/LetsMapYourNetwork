@@ -201,7 +201,7 @@ def action(request, project_id):
             netifaces.interfaces()[1])  # need to modify the code to enumerate the interfaces propoerly
         local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
             netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-        local_ip_range = "10.20.11.1/24"
+        # local_ip_range = "10.20.11.1/24"
         # ips = netifaces.gateways()['default'][netifaces.AF_INET][0]
         print "Local IP range " + local_ip_range
 
@@ -294,7 +294,7 @@ def roam(project):
     print "Subnet: " + subnet
 
     gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN")
-    ip = "10.20.11.1/24"
+    # ips = "10.20.11.1/24"
     live_ip_nodes = networkscan(ips)
 
     for ip in live_ip_nodes:
