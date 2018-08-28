@@ -72,17 +72,36 @@
 
             // iteration on graph for all node
             data.graph.nodes.forEach(function (node) {
+                var origin = node.properties.tag.split("#")[1];
+                var reachability = node.properties.tag.split("#")[2];
+                var nodecolor = "#222D32";
+                console.log(origin);
+                console.log(reachability);
+                if (reachability.localeCompare("EXTERNAL") == 0){nodecolor = "#20A8D8";}
+                else
+                {
+                    if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
+                    {nodecolor = "#3333ff";}
+                    else if (origin.localeCompare("CMDB") == 0)
+                    {nodecolor = "#00b300";}
+                    else if (origin.localeCompare("DISCOVERED") == 0)
+                    {nodecolor = "#e60000";}
+                }
 
                 var sigmaNode =  {
                     id : node.id,
                     label : "",
                     x : node.properties.distance + 5,
                     y : node.properties.queue,
-                    size : 10,
-                    maxNodeSize: 20,
-                    color : '#20A8D8',
+                    size : 15,
+                    maxNodeSize: 25,
+                    minNodeSize: 15,
+                    color : nodecolor,
                     neo4j_labels : node.labels,
                     neo4j_data : node.properties,
+                    borderColor: '#222D32',
+                    borderWidth: 3,
+                    autoRescale : ['nodePosition', 'edgeSize'],
                     //drawLabels: false
                 };
 
