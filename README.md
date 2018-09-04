@@ -96,7 +96,8 @@ Below technologies have been used in the tool:
 #### FUTURE TO-DO #### 
 1. More interactive actions for node 
 2. System fingerprinting
-3. Grouping of systems – like same subnet IPs as one group
-4. Geographical location mapping
+3. Provide the solution as Docker installation
+4. Grouping of systems – like same subnet IPs as one group
+5. Geographical location mapping
 
 Shoot any suggestion/complain/bug to **varchashva [at] gmail [dot] com**
