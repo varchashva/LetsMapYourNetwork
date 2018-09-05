@@ -22,6 +22,8 @@ Below technologies have been used in the tool:
 2. Neo4j DB
 3. Sigma JS
 
+![LMYN IN ACTION](lmyn.png)
+
 #### WHY IT IS #### 
  - Visualizing infrastructure network in form of graph makes it more ‘visible’ and it becomes significantly easy to perform the analysis and identify the key areas of concern for a security engineer and network administrator
  - Also, Let’s Map Your Network formulates the graph entirely based-on the network actions performed from ‘seed’ system which will be part of the actual network. Hence there is no chance of manual-error in the mapping of network
