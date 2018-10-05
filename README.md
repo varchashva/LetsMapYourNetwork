@@ -39,7 +39,6 @@ Below technologies have been used in the tool:
 
 1. Download LMYN from GitHub and extract all to a directory like /opt/LMYN ($LMYN_HOME)
 2. Install python: sudo apt-get install python2.7
-   - [Install Django](https://docs.djangoproject.com/en/2.1/topics/install/) - sudo pip install Django
 3. Install nmap: sudo apt-get install nmap 
 4. Install Java Development Kit
    - Install Oracle JDK 8 (it’s a prerequisite for Neo4j database)
@@ -66,7 +65,6 @@ Below technologies have been used in the tool:
 2. Install python 
    - Go to python [download](https://www.python.org/downloads/release/python-2715) section and click on [Windows x86 MSI installer for 32-bit](https://www.python.org/ftp/python/2.7.15/python-2.7.15.msi) user OR [Windows x86-64 MSI installer](https://www.python.org/ftp/python/2.7.15/python-2.7.15.amd64.msi) for 64-bit user 
    - Install the downloaded python file with all default settings
-   - [Install Django](https://docs.djangoproject.com/en/2.1/howto/windows) - pip install django
 3. Download [nmap](https://nmap.org/dist/nmap-7.70-setup.exe) from here and install with all default settings
 4. Install Microsoft Visual Studio C++
    - 32-bit user install [VC setup](http://download.microsoft.com/download/A/5/4/A54BADB6-9C3F-478D-8657-93B3FC9FE62D/vcsetup.exe) only with all optional product UNCHECKED
