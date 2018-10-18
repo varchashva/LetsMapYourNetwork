@@ -11,15 +11,18 @@ Let’s Map Your Network (LMYN) aims to provide an easy to use interface to secu
 Below are the modules in LMYN to perform the task of mapping
 
 1. Project Management – Two modules (New Project and Working Project) will allow you to create and switch between the different projects
-2. Find Me – This module enumerates the IP of system in which it is running and further network mapping will be done considering the current system as a 'seed'
-3. Roam Around – This module identifies all ‘live’ hosts in the same LAN in which seed system is connected
-4. Go To – This module displays graph of all hops that packet is traversing through to reach destination (provided by user) from seed system
-5. Scan – This module will perform ping scan of any arbitrary IP range provided by user
+2. Load CMDB - This module allows an administrator to upload the CMDB file (new line seperated) and map it entirely. Additionaly, it have a **Be Intrusive** feature which, if selected, will perform enumeration to identify the 'rogue' host that are not present in CMDB. **RED** color node will depicts the rogue nodes
+3. Find Me – This module enumerates the IP of system in which it is running and further network mapping will be done considering the current system as a 'seed'
+4. Roam Around – This module identifies all ‘live’ hosts in the same LAN in which seed system is connected
+5. Go To – This module displays graph of all hops that packet is traversing through to reach destination (provided by user) from seed system
+6. Scan – This module will perform ping scan of any arbitrary IP range provided by user and will travese the path to seed host
 
 Below technologies have been used in the tool:
 1. Django Python
 2. Neo4j DB
 3. Sigma JS
+
+![LMYN IN ACTION](lmyn.png)
 
 #### WHY IT IS #### 
  - Visualizing infrastructure network in form of graph makes it more ‘visible’ and it becomes significantly easy to perform the analysis and identify the key areas of concern for a security engineer and network administrator
@@ -95,4 +98,8 @@ Below technologies have been used in the tool:
 #### FUTURE TO-DO #### 
 1. More interactive actions for node 
 2. System fingerprinting
-3. Grouping of systems – like same subnet IPs as one group
+3. Provide the solution as Docker installation
+4. Grouping of systems – like same subnet IPs as one group
+5. Geographical location mapping
+
+Shoot any suggestion/complain/bug to **varchashva [at] gmail [dot] com**
