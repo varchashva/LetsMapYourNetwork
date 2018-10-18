@@ -156,7 +156,7 @@ def action(request, project_id):
                 print "performing traceroute to " + ip
                 traceroute(ip,33434,30,project_id)
         context = { "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
-                   "projectform": projectform}
+                    "projectform": projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "select" in action:
         # print "In Select: " + str(projectform.PROJECT_CHOICES)
@@ -196,53 +196,62 @@ def action(request, project_id):
         # return render(request, 'project.html', context)
         return redirect("/core/" + str(project_id) + "/action")
     elif "cmdb" in action:
-        interface = netifaces.interfaces()[1]
-        inet_addrs = netifaces.ifaddresses(
-            netifaces.interfaces()[1])  # need to modify the code to enumerate the interfaces propoerly
-        local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
-            netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-        # local_ip_range = "10.20.11.1/24"
-        # ips = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        print "Local IP range " + local_ip_range
+        # for interface in netifaces.interfaces():
+        #     inet_addrs = netifaces.ifaddresses(interface)  # need to modify the code to enumerate the interfaces propoerly
+        #
+             # local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
+             #     netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
+        #
+        #     local_ip_range = "10.20.11.1/24"
+        #     # ips = netifaces.gateways()['default'][netifaces.AF_INET][0]
+        # print "Local IP range " + local_ip_range
+        #
+        # gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+        # subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
+        # gatewaynewnode = makeanode(gateway, subnet, project_id, 1,"CMDB")
 
-        gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
-        gatewaynewnode = makeanode(gateway, subnet, project_id, 1,"CMDB")
+        localipstring = getlocalinfo(project_id) # form: ip1#ip2#ip3$subnet1#subnet2#ip3
+        ip_ranges = str(localipstring).split("$")[0].split("#")
+        subnet_ranges = str(localipstring).split("$")[1].split("#")
+        print "processing "+ str(len(ip_ranges)) + "local interfaces"
 
         cmdb_file_ips = []
+
+        localnode = makeanode(ip_ranges[0],subnet_ranges[0],project_id,0,"CMDB")
 
         for line in request.FILES['cmdbfilepath']:
             cmdb_file_ips.append(line)
             print "scanning IP " + line
             scanresult = networkscan(line)
             for ip in scanresult:
-                if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-                    print "in local range"
-                    node = makeanode(ip, subnet, project_id, 2,"CMDB")
-                    gatewaynewnode.connected.connect(node)
-                else:
-                    print "performing traceroute to " + ip
-                    traceroute(ip, 33434, 30, project_id)
+                for i in range(0,len(ip_ranges)):
+                    local_ip_range = ip_ranges[i]+"/"+str(netaddr.IPAddress(subnet_ranges[i]).netmask_bits())
+                    if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
+                        print "in local range"
+                        node = makeanode(ip, subnet_ranges[i], project_id, 2,"CMDB")
+                        localnode.connected.connect(node)
+                    else:
+                        print "performing traceroute to " + ip
+                        traceroute(ip, 33434, 30, project_id)
 
         print "Here it is " + str(request.POST.get("beintrusive", None))
-
-
-
         if str(request.POST.get("beintrusive", None)) == "on":
-            scanresult = networkscan(local_ip_range)# Scan all live LOCAL IPs
-            for ip in scanresult:
-                origin = "DISCOVERED"
-                for cmdb_file_ip in cmdb_file_ips:
-                    if netaddr.IPAddress(ip) in netaddr.IPNetwork(cmdb_file_ip):
-                        origin = "CMDB"
-                        break
-                node = makeanode(ip,subnet,project_id,2,origin)
-                gatewaynewnode.connected.connect(node)
+            for i in range(0,len(ip_ranges)):
+                local_ip_range = ip_ranges[i] + "/" + str(netaddr.IPAddress(subnet_ranges[i]).netmask_bits())
+                scanresult = networkscan(local_ip_range )# Scan all live LOCAL IPs
+                for ip in scanresult:
+                    origin = "DISCOVERED"
+                    for cmdb_file_ip in cmdb_file_ips:
+                        if netaddr.IPAddress(ip) in netaddr.IPNetwork(cmdb_file_ip):
+                            origin = "CMDB"
+                            break
+                    node = makeanode(ip,subnet_ranges[i],project_id,2,origin)
+                    localnode.connected.connect(node)
+                # gatewaynewnode.connected.connect(node)
             traceroute("google.com",33434,30,project_id) # perform traceroute to google.com
         return redirect("/core/" + str(project_id) + "/action")
     else:
-        # project, test = projectform.PROJECT_CHOICES[int(project_id) - 1]
-        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform}
+        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
 
 def clear(project_id):
@@ -251,27 +260,38 @@ def clear(project_id):
     return "Info: all clear"
 
 def getlocalinfo(project):
-    inet_addrs = netifaces.ifaddresses(netifaces.interfaces()[1])
-    localip = inet_addrs[netifaces.AF_INET][0]['addr']
-    print "Local IP: " + localip
+    localip = ""
+    subnet = ""
+    for interface in netifaces.interfaces():
+        print "processing: " + interface
+        try:
+            inet_addrs = netifaces.ifaddresses(interface)
+            currentip = ipaddress.ip_address(unicode(inet_addrs[netifaces.AF_INET][0]['addr']))
+            currentsubnet = inet_addrs[netifaces.AF_INET][0]['netmask']
+            print "current ip: " + str(currentip) + " " + currentsubnet
+            if (not currentip.is_loopback and currentip.version == 4):
+                localip = str(localip) + "#" + str(currentip)
+                subnet = subnet + "#" + currentsubnet
+                break #picking only first valid IP as of now
+        except Exception as ex:
+            print ex
+    makeanode(localip.strip("#"), subnet.strip("#"), project, 0, "SEED")
+    return localip.strip("#") + "$" + subnet.strip("#")
 
     # localhostname = socket.gethostbyaddr(localip)
     # print localhostname[0]
-    subnet = inet_addrs[netifaces.AF_INET][0]['netmask']
-    print "Subnet: " + subnet
 
-    localnode = makeanode(localip,subnet,project,0,"SEED")
 
-    gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-    print "Gateway: " + gateway
-
-    gatewaynode =  makeanode(gateway,subnet,project,1,"FINDME")
-
-    localnode.connected.connect(gatewaynode)
-    # gatewayhostname = socket.gethostbyaddr(gateway)
+    # gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+    # print "Gateway: " + gateway
+    #
+    # gatewaynode =  makeanode(gateway,subnet,project,1,"FINDME")
+    #
+    # localnode.connected.connect(gatewaynode)
+    # # gatewayhostname = socket.gethostbyaddr(gateway)
     # print gatewayhostname[0]
 
-    return localip + "#" + gateway
+    # return localip
     # return localip + "#" +localhostname[0] +"#" + subnet + "#" + gateway + "#" + gatewayhostname[0]
 
 def roam(project):
@@ -385,7 +405,7 @@ def traceroute(hostname, port, max_hops,project):
                 newnode.connected.connect(previousnode)
                 previousnode = newnode
 
-            # previousnode = Machine(ip=currenthost, hostname=currenthostname, subnet="255.255.255.0")
+                # previousnode = Machine(ip=currenthost, hostname=currenthostname, subnet="255.255.255.0")
         # else:
         #     currenthost = "*"
         #     newnode = makeanode("*","*",project,ttl)
@@ -402,18 +422,13 @@ def traceroute(hostname, port, max_hops,project):
 
 
 def makeanode(ip,subnet,project,distance,origin):
-
-    # jim = Person.nodes.get(name='Jim')
-    # need to write a method to make an entry
-    # perform the validation of existence of node
-
     try:
         checknode = Machine.nodes.get(ip=ip,tag__startswith=project)
         print "Node exist: " + checknode.ip
     except Machine.DoesNotExist as ex:
         print "Exception: " + str(ex)
         try:
-            hostname = socket.gethostbyaddr(ip)[0]
+            hostname = socket.gethostbyaddr(ip.split("#")[0])[0]
         except Exception as ex:
             print "Exception: " + str(ex)
             hostname = ip
@@ -425,7 +440,7 @@ def makeanode(ip,subnet,project,distance,origin):
         else:
             queue = (count + 1)/2
 
-        if ipaddress.ip_address(unicode(ip)).is_private:
+        if ipaddress.ip_address(unicode(ip.split("#")[0])).is_private:
             tag = project + "#" + origin + "#INTERNAL"
         else:
             tag = project + "#" + origin + "#EXTERNAL"

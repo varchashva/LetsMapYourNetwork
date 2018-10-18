@@ -423,8 +423,8 @@
         nCrossProduct = crossProduct / d; // normalized cross product
 
     return (nCrossProduct < epsilon &&
-     Math.min(x1, x2) <= x && x <= Math.max(x1, x2) &&
-     Math.min(y1, y2) <= y && y <= Math.max(y1, y2));
+     Math.min(x1, x2) - epsilon <= x && x <= Math.max(x1, x2) + epsilon &&
+     Math.min(y1, y2) - epsilon <= y && y <= Math.max(y1, y2) + epsilon );
   };
 
   /**

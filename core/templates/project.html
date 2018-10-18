@@ -56,6 +56,8 @@
     <script src="/static/LetsMapYourNetwork/plugins/sigma.parsers.json/sigma.parsers.json.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.neo4j.cypher/sigma.neo4j.cypher.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
+
 
 
     <script src="/static/plugins/jQuery/jQuery-2.1.4.min.js"></script>
@@ -73,8 +75,9 @@
 <div class="wrapper">
     <header class="main-header">
         <a href="" class="logo">
-            <span class="logo-mini">LM<b>Y</b>N</span>
             <span class="logo-lg">Let's Map<b> YOUR </b>Network</span>
+            <span class="logo-mini">LM<b>Y</b>N</span>
+
         </a>
 
         <nav class="navbar navbar-static-top" role="navigation">
@@ -87,11 +90,13 @@
                 <ul class="nav navbar-nav">
                     <!--Menu Items-->
                     <ul class="nav navbar-nav">
-                        <li><a href="https://github.com/varchashva/letsmapyournetwork/blob/master/README.md">About</a></li>
+                        <li><a href="https://github.com/varchashva/letsmapyournetwork/blob/master/README.md">About</a>
+                        </li>
                     </ul>
                     <form class="navbar-form navbar-left" role="search" action="/search" method="GET">
                         <div class="form-group">
-                            <input type="text" name="md5" class="form-control" id="navbar-search-input" placeholder="Search NODE">
+                            <input type="text" name="md5" class="form-control" id="navbar-search-input"
+                                   placeholder="Search NODE">
                         </div>
                     </form>
                 </ul>
@@ -104,14 +109,22 @@
     <div class="sidebar" id="scrollspy">
         <ul class="nav sidebar-menu">
             <li class="treeview">
-                <a href="javascript::;"><i class="glyphicon glyphicon-upload" style="color: rgb(184, 199, 206);" ></i>Map CMDB</a>
+                <a href="javascript::;"><i class="glyphicon glyphicon-upload" style="color: rgb(184, 199, 206);"></i>Map
+                    CMDB</a>
                 <ul class="nav treeview-menu">
-                    <div class="input-group" >
-                        <form id="cmdbform" class="md-form" enctype="multipart/form-data" action="/core/{{project_id}}/action" method="POST">
-                            <div class="input-group-prepend" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" >
-                               <input type="checkbox" name="beintrusive" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" > Be INTRUSIVE
-                                <input type="file" class="btn btn-primary" name="cmdbfilepath" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;display:inline;width:95px;">
-                                <input type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Map CMDB">
+                    <div class="input-group">
+                        <form id="cmdbform" class="md-form" enctype="multipart/form-data"
+                              action="/core/{{project_id}}/action" method="POST">
+                            <div class="input-group-prepend"
+                                 style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;">
+                                <input type="checkbox" name="beintrusive"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"> Be
+                                INTRUSIVE
+                                <input type="file" class="btn btn-primary" name="cmdbfilepath"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;display:inline;width:95px;">
+                                <input type="submit" class="btn btn-primary"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"
+                                       value="Map CMDB">
 
                             </div>
                         </form>
@@ -119,17 +132,22 @@
                 </ul>
             </li>
 
-            <li><a href="/core/{{project_id}}/action?action=findme"><i class="glyphicon glyphicon-search"></i> Find Me</a></li>
-            <li><a href="/core/{{project_id}}/action?action=roam"><i class="glyphicon glyphicon-globe"></i> Roam Around</a></li>
+            <li><a href="/core/{{project_id}}/action?action=findme"><i class="glyphicon glyphicon-search"></i> Find
+                Me</a></li>
+            <li><a href="/core/{{project_id}}/action?action=roam"><i class="glyphicon glyphicon-globe"></i> Roam Around</a>
+            </li>
 
             <li class="treeview">
-                <a href="javascript::;"><i class="glyphicon glyphicon-cloud" style="color: rgb(184, 199, 206);" ></i> Go To</a>
+                <a href="javascript::;"><i class="glyphicon glyphicon-cloud" style="color: rgb(184, 199, 206);"></i> Go
+                    To</a>
                 <ul class="nav treeview-menu">
-                    <div class="input-group" >
+                    <div class="input-group">
                         <form id="gotoform" class="form-inline" action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
                                 {{gotoform.goto_target}}
-                                <input type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Go To">
+                                <input type="submit" class="btn btn-primary"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"
+                                       value="Go To">
                             </div>
 
                         </form>
@@ -138,13 +156,16 @@
             </li>
 
             <li class="treeview">
-                <a href="javascript::;"><i class="glyphicon glyphicon-zoom-in"  style="color: rgb(184, 199, 206);"></i> Scan</a>
+                <a href="javascript::;"><i class="glyphicon glyphicon-zoom-in" style="color: rgb(184, 199, 206);"></i>
+                    Scan</a>
                 <ul class="nav treeview-menu">
-                    <div class="input-group" >
+                    <div class="input-group">
                         <form action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
                                 {{scanform}}
-                                <input type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Scan">
+                                <input type="submit" class="btn btn-primary"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"
+                                       value="Scan">
                             </div>
 
                         </form>
@@ -152,45 +173,52 @@
                 </ul>
             </li>
             <li class="treeview">
-                <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i> Create Project</a>
+                <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i>
+                    Create Project</a>
                 <ul class="nav treeview-menu">
                     <div class="input-group">
                         <form action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
 
                                 {{newprojectform}}
-                                <input type="submit" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Create">
+                                <input type="submit"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"
+                                       value="Create">
                             </div>
                         </form>
                     </div>
                 </ul>
             </li>
             <li class="treeview">
-                <a href="javascript::;"><i class="glyphicon glyphicon-ok" style="color: rgb(184, 199, 206);"></i> Working Project</a>
+                <a href="javascript::;"><i class="glyphicon glyphicon-ok" style="color: rgb(184, 199, 206);"></i>
+                    Working Project</a>
                 <ul class="nav treeview-menu">
                     <div class="input-group">
                         <form action="/core/{{project_id}}/action" method="POST">
                             <div class="input-group-prepend">
                                 {{projectform}}
-                                <input type="submit" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="Select">
+                                <input type="submit"
+                                       style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"
+                                       value="Select">
                             </div>
                         </form>
                     </div>
                 </ul>
             </li>
 
-            <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Clear All</a></li>
+            <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Clear
+                All</a></li>
 
-            <li style="color: rgb(184, 199, 206);">__________________________________________________________</li>
+            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
 
-            <li class="treeview active" >
-                <a href="javascript::;"><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>
-                <ul class="treeview-menu"><a href=""><div id="hostname"></div></a><br>
-                   <a href=""><div id="ip"></div></a><br>
-                        <a href=""><div id="tag"></div></a><br>
-                        <a href=""><div id="distance"></div></a></ul>
-            </li>
-            <li style="color: rgb(184, 199, 206);">__________________________________________________________</li>
+            <!--<li class="treeview active" >-->
+            <!--<a href="javascript::;"><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>-->
+            <!--<ul class="treeview-menu"><a href=""><div id="hostname"></div></a><br>-->
+            <!--<a href=""><div id="ip"></div></a><br>-->
+            <!--<a href=""><div id="tag"></div></a><br>-->
+            <!--<a href=""><div id="distance"></div></a></ul>-->
+            <!--</li>-->
+            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
         </ul>
 
     </div>
@@ -213,109 +241,133 @@
 </html>
 
 <script type="application/javascript">
-     sigma.neo4j.cypher(
-            { url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j' },
-            'MATCH (n) WHERE n.tag =~ ".*{{project_id}}.*" OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m LIMIT 100',
-            { container: 'graph-container' } ,
-            function(s) {
-                console.log('Number of nodes: '+ s.graph.nodes().length);
-                console.log('Number of edges: '+ s.graph.edges().length);
-                console.log('Project: {{project_id}}');
-
-                <!--s.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {-->
-  <!--console.log(e.type, e.data.node.label, e.data.captor);-->
-<!--});-->
-
-   // Initialize the dragNodes plugin:
-var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
-
-dragListener.bind('startdrag', function(event) {
-  console.log(event);
-});
-dragListener.bind('drag', function(event) {
-  console.log(event);
-});
-dragListener.bind('drop', function(event) {
-  console.log(event);
-});
-dragListener.bind('dragend', function(event) {
-  console.log(event);
-});
-
-   s.bind('overNode clickNode', function(e) {
-   <!--console.log(s.renderers[0]);-->
-  <!--console.log(e.type, e.data.node.label, e.data.captor);-->
-  <!--This is where to handle the click function-->
-  <!--location.reload();-->
-
-    var hostname = "<i class='glyphicon glyphicon-info-sign' style='color: rgb(184, 199, 206);'></i> HOSTNAME: "+ e.data.node.neo4j_data.hostname;
-    var ip =   "<i class='glyphicon glyphicon-certificate' style='color: rgb(184, 199, 206);'></i> IP: " + e.data.node.neo4j_data.ip;
-    var tag = "<i class='glyphicon glyphicon-tag' style='color: rgb(184, 199, 206);'></i> TAG: " + e.data.node.neo4j_data.tag;
-    var distance = "<i class='glyphicon glyphicon-signal' style='color: rgb(184, 199, 206);'></i> DISTANCE: " + e.data.node.neo4j_data.distance;
-    <!--if (ipaddr.parse(e.data.node.neo4j_data.ip).range().localeCompare("private") == 0)-->
-    <!--{-->
-        <!--e.data.node.color = '#222D32';-->
-    <!--}-->
-    <!--else-->
-    <!--{-->
-        <!--e.data.node.color = '#00FF00';-->
-    <!--}-->
-    e.data.node.color = '#222D32';
-    e.data.node.size = e.data.node.maxNodeSize;
-    <!--console.log(e.data.node.neo4j_data.ip);-->
-    <!--console.log(ipaddr.parse(e.data.node.neo4j_data.ip).range());-->
-
-    e.data.node.borderWidth = 5;
-    e.data.node.borderColor = '#20A8D8';
-    <!--e.data.node.refresh();-->
-    s.refresh();
-    $('#hostname').html(hostname);
-    $('#ip').html(ip);
-    $('#tag').html(tag);
-    $('#distance').html(distance);
-});
-s.bind('outNode', function(e) {
-   var origin = e.data.node.neo4j_data.tag.split("#")[1];
-                var reachability = e.data.node.neo4j_data.tag.split("#")[2];
-                var nodecolor = "#222D32";
-                console.log(origin);
-                console.log(reachability);
-                if (reachability.localeCompare("EXTERNAL") == 0){e.data.node.color = "#20A8D8";}
-                else
+    sigma.neo4j.cypher(
+        {url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'},
+        'MATCH (n) WHERE n.tag =~ ".*{{project_id}}.*" OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m LIMIT 100',
+        {
+            container: 'graph-container',
+            type: 'canvas',
+            settings:
                 {
-                    if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
-                    {e.data.node.color = "#3333ff";}
-                    else if (origin.localeCompare("CMDB") == 0)
-                    {e.data.node.color = "#00b300";}
-                    else if (origin.localeCompare("DISCOVERED") == 0)
-                    {e.data.node.color = "#e60000";}
+                    enableEdgeHovering: true,
+                    edgeHoverSizeRatio: 2.5,
+                    defaultEdgeLabelColor: "#000000",
+                    drawEdgeLabels: false, //defines the visibility of edge label
+                                        autoRescale: ['nodePosition','edgeSize'] ,                  //drawLabels: false
+
                 }
-   e.data.node.borderWidth = 3;
-   e.data.node.borderColor = '#222D32';
-   e.data.node.size = e.data.node.minNodeSize;
-   <!--e.data.node.refresh();-->
-   s.refresh();
-     <!--console.log(e.type, e.data.node.label, e.data.node.color);-->
+        },
+        function (s) {
+            <!--s.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {-->
+            <!--console.log(e.type, e.data.node.label, e.data.captor);-->
+            <!--});-->
+
+            <!--s.bind('overEdge',function(e){-->
+            <!--&lt;!&ndash;console.log(e.type,e.data.edge.label);&ndash;&gt;-->
+            <!--s.settings('drawEdgeLabels',true);-->
+            <!--});-->
+            <!--s.bind('outEdge',function(e){-->
+            <!--&lt;!&ndash;console.log(e.type,e.data.edge.label);&ndash;&gt;-->
+            <!--s.settings('drawEdgeLabels',false);-->
+            <!--});-->
+
+            // Initialize the dragNodes plugin:
+            var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
+
+            dragListener.bind('startdrag', function (event) {
+                console.log(event);
+            });
+            dragListener.bind('drag', function (event) {
+                console.log(event);
+            });
+            dragListener.bind('drop', function (event) {
+                console.log(event);
+            });
+            dragListener.bind('dragend', function (event) {
+                console.log(event);
+            });
+
+            s.bind('overNode clickNode', function (e) {
+                <!--console.log(s.renderers[0]);-->
+                <!--console.log(e.type, e.data.node.label, e.data.captor);-->
+                <!--This is where to handle the click function-->
+                <!--location.reload();-->
+
+                <!--e.data.node.color = '#222D32';-->
+                e.data.node.size = e.data.node.maxNodeSize;
+                <!--console.log(e.data.node.neo4j_data.ip);-->
+                <!--console.log(ipaddr.parse(e.data.node.neo4j_data.ip).range());-->
+
+                <!--e.data.node.borderWidth = 5;-->
+                <!--e.data.node.borderColor = '#20A8D8';-->
+            // <
+            //     !--
+            //     var hostname = "<i class='glyphicon glyphicon-info-sign' style='color: rgb(184, 199, 206);'></i> HOSTNAME: " + e.data.node.neo4j_data.hostname;
+            //     -- >
+            //     < !--
+            //     var ip = "<i class='glyphicon glyphicon-certificate' style='color: rgb(184, 199, 206);'></i> IP: " + e.data.node.neo4j_data.ip;
+            //     -- >
+            //     < !--
+            //     var tag = "<i class='glyphicon glyphicon-tag' style='color: rgb(184, 199, 206);'></i> TAG: " + e.data.node.neo4j_data.tag;
+            //     -- >
+            //     < !--
+            //     var distance = "<i class='glyphicon glyphicon-signal' style='color: rgb(184, 199, 206);'></i> DISTANCE: " + e.data.node.neo4j_data.distance;
+            //     -- >
+            //     <!--$('#hostname').html(hostname);-->
+            //     <!--$('#ip').html(ip);-->
+            //     <!--$('#tag').html(tag);-->
+            //     <!--$('#distance').html(distance);-->
+                s.refresh();
+            });
+            s.bind('outNode', function (e) {
+                var origin = e.data.node.neo4j_data.tag.split("#")[1];
+                var reachability = e.data.node.neo4j_data.tag.split("#")[2];
+                <!--var nodecolor = "#222D32";-->
+                <!--console.log(origin);-->
+                <!--console.log(reachability);-->
+                <!--if (reachability.localeCompare("EXTERNAL") == 0) {-->
+                    <!--e.data.node.color = "#20A8D8";-->
+                <!--}-->
+                <!--else {-->
+                    <!--if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0) {-->
+                        <!--e.data.node.color = "#3333ff";-->
+                        <!--e.data.node.borderColor = "#99c2ff";-->
+                    <!--}-->
+                    <!--else if (origin.localeCompare("CMDB") == 0) {-->
+                        <!--e.data.node.color = "#009900";-->
+                        <!--e.data.node.borderColor = "#99ffbb";-->
+                    <!--}-->
+                    <!--else if (origin.localeCompare("DISCOVERED") == 0) {-->
+                        <!--e.data.node.color = "#e60000";-->
+                        <!--e.data.node.borderColor = "#ff9999";-->
+                    <!--}-->
+                <!--}-->
+                <!--e.data.node.borderWidth = 5;-->
+                e.data.node.size = e.data.node.minNodeSize;
+                <!--e.data.node.refresh();-->
+                s.refresh();
+                <!--console.log(e.type, e.data.node.label, e.data.node.color);-->
 
 
-});
-            }
+            });
+        }
     );
 
     // Calling neo4j to get all its relationship type
     <!--sigma.neo4j.getTypes(-->
-            <!--{ url: 'http://localhost:7474', user:'neo4j', password:'Neo4j' },-->
-            <!--function(types) {-->
-                <!--console.log("Relationship types: " + types);-->
-            <!--}-->
-    <!--);-->
-
-    <!--// Calling neo4j to get all its node label-->
-    <!--sigma.neo4j.getLabels(-->
-            <!--{ url: 'http://localhost:7474', user:'neo4j', password:'Neo4j' },-->
-            <!--function(labels) {-->
-                <!--console.log("Node labels: " + labels);-->
-            <!--}-->
-    <!--);-->
+    // <
+    // !--{url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'}, -- >
+    // <!--function(types) {-->
+    // <!--console.log("Relationship types: " + types);-->
+    // <!--}-->
+    // <!--);-->
+    //
+    // < !--// Calling neo4j to get all its node label-->
+    // <!--sigma.neo4j.getLabels(-->
+    // < !--{url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'}, -- >
+    // <!--function(labels) {-->
+    // <!--console.log("Node labels: " + labels);-->
+    // <!--}-->
+    // <!--);-->
 
 </script>

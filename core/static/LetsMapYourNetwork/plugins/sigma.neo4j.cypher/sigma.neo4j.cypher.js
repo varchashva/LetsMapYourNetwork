@@ -75,17 +75,27 @@
                 var origin = node.properties.tag.split("#")[1];
                 var reachability = node.properties.tag.split("#")[2];
                 var nodecolor = "#222D32";
-                console.log(origin);
-                console.log(reachability);
-                if (reachability.localeCompare("EXTERNAL") == 0){nodecolor = "#20A8D8";}
+                var bordercolor = '#20A8D8';
+//                console.log(origin);
+//                console.log(reachability);
+                if (reachability.localeCompare("EXTERNAL") == 0)
+                {nodecolor = "#20A8D8";
+                bordercolor = "#80bfff"; //light-blue
+                }
                 else
                 {
                     if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
-                    {nodecolor = "#3333ff";}
+                    {nodecolor = "#3333ff";
+                    bordercolor = "#99c2ff";//blue
+                    }
                     else if (origin.localeCompare("CMDB") == 0)
-                    {nodecolor = "#00b300";}
+                    {nodecolor = "#009900";//green
+                    bordercolor = "#99ffbb";
+                    }
                     else if (origin.localeCompare("DISCOVERED") == 0)
-                    {nodecolor = "#e60000";}
+                    {nodecolor = "#e60000";
+                    bordercolor = "#ff9999";//red :80%
+}
                 }
 
                 var sigmaNode =  {
@@ -99,10 +109,8 @@
                     color : nodecolor,
                     neo4j_labels : node.labels,
                     neo4j_data : node.properties,
-                    borderColor: '#222D32',
-                    borderWidth: 3,
-                    autoRescale : ['nodePosition', 'edgeSize'],
-                    //drawLabels: false
+                    borderColor: bordercolor,
+                    borderWidth: 8,
                 };
 
 //console.log(sigmaNode.size);
@@ -124,9 +132,11 @@
                     label : edge.type,
                     source : edge.startNode,
                     target : edge.endNode,
-                    color : '#222D32',
+                    color : '#CCCCCC',
                     neo4j_type : edge.type,
-                    neo4j_data : edge.properties
+                    neo4j_data : edge.properties,
+                    size: 3,
+
                 };
 
                 if (sigmaEdge.id in edgesMap) {
@@ -184,7 +194,10 @@
 
             return function (response) {
 
-                var graph = { nodes: [], edges: [] };
+                var graph = { nodes: [],
+                              edges: [],
+
+                             };
 
                 graph = sigma.neo4j.cypher_parse(response);
 

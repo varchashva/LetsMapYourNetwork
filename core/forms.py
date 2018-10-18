@@ -20,3 +20,6 @@ class NewProjectForm(forms.Form):
 
 class ScanForm(forms.Form):
     scanrange = forms.CharField(label="", initial="[Target IP Range]")
+
+class CMDBScanForm(forms.Form):
+    cmdb_file = forms.FileField()
