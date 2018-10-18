@@ -15,8 +15,9 @@
   sigma.canvas.edgehovers.def =
     function(edge, source, target, context, settings) {
       var color = edge.color,
+
         prefix = settings('prefix') || '',
-        size = edge[prefix + 'size'] || 1,
+        size = edge['size'] || 1,
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
         defaultEdgeColor = settings('defaultEdgeColor');
@@ -41,7 +42,7 @@
     }
     size *= settings('edgeHoverSizeRatio');
 
-    context.strokeStyle = color;
+    context.strokeStyle = "#a6a6a6";
     context.lineWidth = size;
     context.beginPath();
     context.moveTo(

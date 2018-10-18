@@ -24,6 +24,10 @@
       true
     );
 
+    context.lineWidth = node.borderWidth;
+    context.strokeStyle = node.borderColor;
+    context.stroke();
+
     context.closePath();
     context.fill();
   };

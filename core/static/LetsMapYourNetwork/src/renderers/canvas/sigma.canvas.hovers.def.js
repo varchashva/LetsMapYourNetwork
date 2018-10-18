@@ -47,9 +47,9 @@
       x = Math.round(node[prefix + 'x'] - fontSize / 2 - 2);
       y = Math.round(node[prefix + 'y'] - fontSize / 2 - 2);
       w = Math.round(
-        context.measureText(node.neo4j_data.hostname).width + fontSize / 2 + size + 7
+        context.measureText(node.neo4j_data.hostname).width + fontSize / 2 + size + 87 //width
       );
-      h = Math.round(fontSize + 4);
+      h = Math.round((fontSize + 4) * 3 + 5); // height
       e = Math.round(fontSize / 2 + 2);
 
       context.moveTo(x, y + e);
@@ -97,10 +97,20 @@
         settings('defaultLabelHoverColor');
 
       context.fillText(
-        node.neo4j_data.hostname,
-        Math.round(node[prefix + 'x'] + size + 3),
+      "Hostname: " + node.neo4j_data.hostname,
+        Math.round(node[prefix + 'x'] + size + 6),
         Math.round(node[prefix + 'y'] + fontSize / 3)
       );
+      context.fillText(
+      "IP: " + node.neo4j_data.ip,
+      Math.round(node[prefix + 'x'] + size + 6),
+        Math.round(node[prefix + 'y'] + fontSize / 3 + 20)
+        );
+      context.fillText(
+      "Distance: " + node.neo4j_data.distance,
+      Math.round(node[prefix + 'x'] + size + 6),
+        Math.round(node[prefix + 'y'] + fontSize / 3 + 40)
+        );
     }
   };
 }).call(this);
