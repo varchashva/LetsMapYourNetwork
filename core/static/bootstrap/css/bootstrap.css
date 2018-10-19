@@ -5506,7 +5506,7 @@ button.list-group-item-danger.active:focus {
 }
 .panel-heading {
   padding: 10px 15px;
-  border-bottom: 1px solid transparent;
+  border-top: 5px solid transparent;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
 }
@@ -5750,9 +5750,9 @@ button.list-group-item-danger.active:focus {
   border-color: #337ab7;
 }
 .panel-primary > .panel-heading {
-  color: #fff;
-  background-color: #337ab7;
-  border-color: #337ab7;
+  color: #000;
+  background-color: #EEEEEE;
+  border-color: #20A8D8;
 }
 .panel-primary > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: #337ab7;

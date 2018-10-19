@@ -9,8 +9,8 @@ class ProjectForm(forms.Form):
     for node in Machine.nodes:
         tuple = (str(node.tag).split("#")[0],str(node.tag).split("#")[0])
         PROJECT_CHOICES.append(tuple)
-        # print "Tag: " + node.tag
     PROJECT_CHOICES = list(set(PROJECT_CHOICES))
+    PROJECT_CHOICES.sort()
     print "Project List: " + str(PROJECT_CHOICES)
     project = forms.CharField(widget=forms.Select(choices=PROJECT_CHOICES),label="")
 

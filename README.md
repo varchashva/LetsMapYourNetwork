@@ -11,15 +11,18 @@ Let’s Map Your Network (LMYN) aims to provide an easy to use interface to secu
 Below are the modules in LMYN to perform the task of mapping
 
 1. Project Management – Two modules (New Project and Working Project) will allow you to create and switch between the different projects
-2. Find Me – This module enumerates the IP of system in which it is running and further network mapping will be done considering the current system as a 'seed'
-3. Roam Around – This module identifies all ‘live’ hosts in the same LAN in which seed system is connected
-4. Go To – This module displays graph of all hops that packet is traversing through to reach destination (provided by user) from seed system
-5. Scan – This module will perform ping scan of any arbitrary IP range provided by user
+2. Load CMDB - This module allows an administrator to upload the CMDB file (new line seperated) and map it entirely. Additionaly, it have a Be Intrusive feature which, if selected, will perform enumeration to identify the 'rogue' host that are not present in CMDB. RED color node will depicts the rogue nodes
+3. Find Me – This module enumerates the IP of system in which it is running and further network mapping will be done considering the current system as a 'seed'
+4. Roam Around – This module identifies all ‘live’ hosts in the same LAN in which seed system is connected
+5. Go To – This module displays graph of all hops that packet is traversing through to reach destination (provided by user) from seed system
+6. Scan – This module will perform ping scan of any arbitrary IP range provided by user
 
 Below technologies have been used in the tool:
 1. Django Python
 2. Neo4j DB
 3. Sigma JS
+
+![LMYN IN ACTION](images/lmyn.png)
 
 #### WHY IT IS #### 
  - Visualizing infrastructure network in form of graph makes it more ‘visible’ and it becomes significantly easy to perform the analysis and identify the key areas of concern for a security engineer and network administrator
@@ -32,6 +35,19 @@ Below technologies have been used in the tool:
 
 ## INSTALLATION GUIDELINES ##
 
+#### TL;DR (use shortcut: docker installation - Linux)####
+
+1. Install [docker](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository)
+   - sudo apt-get update
+   - sudo apt-get install docker-ce
+   - sudo docker run hello-world
+2. git clone https://github.com/varchashva/LetsMapYourNetwork.git
+3. cd LetsMapYourNetwork
+4. sudo docker-compose build
+5. sudo docker-compose up
+6. Browse to http://localhost:9999/core and you are set to explore the tool :)
+
+### Long version ###
 #### For Linux User (Note - Below commands have been provided for Debian-based linux. For other versions of Linux change all commands accordingly) #### 
 
 1. Download LMYN from GitHub and extract all to a directory like /opt/LMYN ($LMYN_HOME)
@@ -52,9 +68,9 @@ Below technologies have been used in the tool:
    - Run command ./bin/neo4j console to start the neo4j server
    - Browse to Neo4j web console (http://localhost:7474) to change the default password from neo4j to Neo4j
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation) for any troubleshooting, if required 
-6. Run command sudo $LMYN/LetsMapYourNetwork/Install_LMYN.sh
-7. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver --insecure
-8. Open http://localhost:8000/core in browser and explore the tool
+6. Run command sudo pip install --trusted-host pypi.python.org -r $LMYN/LetsMapYourNetwork/requirements.txt
+7. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver 0.0.0.0:9999 --insecure
+8. Open http://localhost:9999/core in browser and explore the tool
 
 #### For Windows User #### 
 
@@ -78,10 +94,11 @@ Below technologies have been used in the tool:
    - Run command bin\neo4j console to start the neo4j server
    - Browse to Neo4j web console (http://localhost:7474) to change the default password from neo4j to Neo4j
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation/) for any troubleshooting, if required 
-7. Copy Install_LMYN.bat to Python home directory for e.g. C:\python and run Install_LMYN.bat with administrative privileges 
-   - Open command prompt with administrative privileges and browse to Python home directory for e.g. cd C:\python
-   - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver --insecure
-8. Open http://localhost:8000/core in browser and explore the tool
+7. Open command prompt with Administrative privilegs and browse to Python home directory for e.g. cd C:\python
+   - Run command python -m pip install --trusted-host pypi.python.org -r $LMYN/LetsMapYourNetwork/requirements.txt
+8. Use same command prompt with Administrative privileges and from Python home directory
+   - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver 0.0.0.0:9999 --insecure
+9. Open http://localhost:9999/core in browser and explore the tool
 
 ### HOW TO USE IT ###
 1. First you need to connect your system into the target network (this will provide us the seed system)
@@ -94,5 +111,9 @@ Below technologies have been used in the tool:
 
 #### FUTURE TO-DO #### 
 1. More interactive actions for node 
-2. System fingerprinting
+2. Provide solution as Docker installation
 3. Grouping of systems – like same subnet IPs as one group
+4. System fingerprinting
+5. Geographical location mapping
+
+Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com

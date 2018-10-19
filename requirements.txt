@@ -1,0 +1,9 @@
+Django==1.11.7
+python-nmap
+neomodel==3.2.5
+django-neomodel
+bulbs
+scapy
+netifaces
+netaddr
+ipaddress

@@ -458,9 +458,3 @@ def networkscan(scanrange):
     else:
         nm.scan(scanrange,arguments="-PE -sn") # ping scan only - can be modified
     return nm.all_hosts()
-    # for host in nm.all_hosts():
-    #     print "Live: " + host
-    #     # traceroute(host, 33434, 30, project)
-    #     hostnode = makeanode(host,"255.255.255.0",project,distance) # need to change the subnet ICMP Address Mask Ping (-PM)
-    #     ip_list.append(hostnode)
-    # return ip_list

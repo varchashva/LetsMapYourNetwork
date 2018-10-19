@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="/static/dash/css/AdminLTE.min.css">
     <link rel="stylesheet" href="/static/dash/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/LetsMapYourNetwork/src/utils/ipaddr.js"></script>
     <script src="/static/LetsMapYourNetwork/src/sigma.core.js"></script>
     <script src="/static/LetsMapYourNetwork/src/conrad.js"></script>
     <script src="/static/LetsMapYourNetwork/src/utils/sigma.utils.js"></script>
@@ -57,7 +56,6 @@
     <script src="/static/LetsMapYourNetwork/plugins/sigma.neo4j.cypher/sigma.neo4j.cypher.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
-
 
 
     <script src="/static/plugins/jQuery/jQuery-2.1.4.min.js"></script>
@@ -208,19 +206,35 @@
 
             <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Clear
                 All</a></li>
-
-            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
-
-            <!--<li class="treeview active" >-->
-            <!--<a href="javascript::;"><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>-->
-            <!--<ul class="treeview-menu"><a href=""><div id="hostname"></div></a><br>-->
-            <!--<a href=""><div id="ip"></div></a><br>-->
-            <!--<a href=""><div id="tag"></div></a><br>-->
-            <!--<a href=""><div id="distance"></div></a></ul>-->
-            <!--</li>-->
-            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
+            <br><br><br>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Node Color Legend</h3>
+                </div>
+                <table class="table table-striped" style="font-size:12px;background-color:#F2F2F2">
+                    <tr>
+                        <td width="20px" bgcolor="#3333ff"></td>
+                        <td>SEED host</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#009900"></td>
+                        <td>Host available in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#e60000"></td>
+                        <td>Live host not available in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#20A8D8"></td>
+                        <td>Host identified live using scans</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#3971ac"></td>
+                        <td>External host</td>
+                    </tr>
+                </table>
+            </div>
         </ul>
-
     </div>
 </aside>
 
@@ -249,7 +263,7 @@
             type: 'canvas',
             settings:
                 {
-                    enableEdgeHovering: true,
+                    enableEdgeHovering: false, //tester demand
                     edgeHoverSizeRatio: 2.5,
                     defaultEdgeLabelColor: "#000000",
                     drawEdgeLabels: false, //defines the visibility of edge label
@@ -369,5 +383,6 @@
     // <!--console.log("Node labels: " + labels);-->
     // <!--}-->
     // <!--);-->
+
 
 </script>

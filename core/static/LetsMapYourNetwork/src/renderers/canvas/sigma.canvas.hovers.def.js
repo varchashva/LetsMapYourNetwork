@@ -45,7 +45,7 @@
 
     if (node.neo4j_data.hostname && typeof node.neo4j_data.hostname === 'string') {
       x = Math.round(node[prefix + 'x'] - fontSize / 2 - 2);
-      y = Math.round(node[prefix + 'y'] - fontSize / 2 - 2);
+      y = Math.round(node[prefix + 'y'] - fontSize / 2 - 22);
       w = Math.round(
         context.measureText(node.neo4j_data.hostname).width + fontSize / 2 + size + 87 //width
       );
@@ -99,17 +99,17 @@
       context.fillText(
       "Hostname: " + node.neo4j_data.hostname,
         Math.round(node[prefix + 'x'] + size + 6),
-        Math.round(node[prefix + 'y'] + fontSize / 3)
+        Math.round(node[prefix + 'y'] + fontSize / 3 - 20)
       );
       context.fillText(
       "IP: " + node.neo4j_data.ip,
       Math.round(node[prefix + 'x'] + size + 6),
-        Math.round(node[prefix + 'y'] + fontSize / 3 + 20)
+        Math.round(node[prefix + 'y'] + fontSize / 3)
         );
       context.fillText(
       "Distance: " + node.neo4j_data.distance,
       Math.round(node[prefix + 'x'] + size + 6),
-        Math.round(node[prefix + 'y'] + fontSize / 3 + 40)
+        Math.round(node[prefix + 'y'] + fontSize / 3 + 20)
         );
     }
   };

@@ -74,27 +74,27 @@
             data.graph.nodes.forEach(function (node) {
                 var origin = node.properties.tag.split("#")[1];
                 var reachability = node.properties.tag.split("#")[2];
-                var nodecolor = "#222D32";
-                var bordercolor = '#20A8D8';
+                var bordercolor = "#80bfff";
+                var nodecolor = '#20A8D8';
 //                console.log(origin);
 //                console.log(reachability);
                 if (reachability.localeCompare("EXTERNAL") == 0)
-                {nodecolor = "#20A8D8";
-                bordercolor = "#80bfff"; //light-blue
+                {bordercolor = "#b3cce6";
+                nodecolor = "#3971ac"; //light-blue
                 }
                 else
                 {
                     if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
-                    {nodecolor = "#3333ff";
-                    bordercolor = "#99c2ff";//blue
+                    {bordercolor = "#99c2ff";
+                    nodecolor = "#3333ff";//blue
                     }
                     else if (origin.localeCompare("CMDB") == 0)
-                    {nodecolor = "#009900";//green
-                    bordercolor = "#99ffbb";
+                    {bordercolor = "#00ff55";//green
+                    nodecolor = "#009900";
                     }
                     else if (origin.localeCompare("DISCOVERED") == 0)
-                    {nodecolor = "#e60000";
-                    bordercolor = "#ff9999";//red :80%
+                    {bordercolor = "#ff9999";
+                    nodecolor = "#e60000"; //red :80%
 }
                 }
 
@@ -109,8 +109,8 @@
                     color : nodecolor,
                     neo4j_labels : node.labels,
                     neo4j_data : node.properties,
-                    borderColor: bordercolor,
-                    borderWidth: 8,
+                    borderColor: nodecolor,
+                    //borderWidth: 3, //tester demand
                 };
 
 //console.log(sigmaNode.size);
@@ -132,7 +132,7 @@
                     label : edge.type,
                     source : edge.startNode,
                     target : edge.endNode,
-                    color : '#CCCCCC',
+                    color : '#888888',
                     neo4j_type : edge.type,
                     neo4j_data : edge.properties,
                     size: 3,
