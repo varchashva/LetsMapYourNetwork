@@ -35,7 +35,7 @@ Below technologies have been used in the tool:
 
 ## INSTALLATION GUIDELINES ##
 
-#### TL;DR (use shortcut: docker installation - Linux)####
+#### TL;DR (docker installation - Linux) ####
 
 1. Install [docker](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository)
    - sudo apt-get update
@@ -104,6 +104,7 @@ Below technologies have been used in the tool:
 1. First you need to connect your system into the target network (this will provide us the seed system)
 2. Now you can create a dedicated project using New Project module or else you may choose to continue with default project
 3. You can perform different network action such as
+   - Load the CMDB file containing IP one per line and you will have a comparative view of your network
    - traceroute to different location system to identify the connection path
    - Discover all hosts in seed system’s Local LAN
    - Discover all hosts in a particular subnet range 
@@ -111,9 +112,11 @@ Below technologies have been used in the tool:
 
 #### FUTURE TO-DO #### 
 1. More interactive actions for node 
-2. Provide solution as Docker installation
-3. Grouping of systems – like same subnet IPs as one group
-4. System fingerprinting
-5. Geographical location mapping
+2. Grouping of systems – like same subnet IPs as one group
+3. System fingerprinting
+4. Geographical location mapping
 
 Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
+
+### Contributer ###
+[Jyoti Raval](https://www.linkedin.com/in/jyoti-raval-61565157/): (Brutal!) QA

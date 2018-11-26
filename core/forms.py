@@ -11,7 +11,6 @@ class ProjectForm(forms.Form):
         PROJECT_CHOICES.append(tuple)
     PROJECT_CHOICES = list(set(PROJECT_CHOICES))
     PROJECT_CHOICES.sort()
-    print "Project List: " + str(PROJECT_CHOICES)
     project = forms.CharField(widget=forms.Select(choices=PROJECT_CHOICES),label="")
 
 

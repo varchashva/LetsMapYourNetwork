@@ -70,39 +70,73 @@
         // Iteration on all result data
         result.results[0].data.forEach(function (data) {
 
+            var stretch = 0;
+            var current_distance = -1;
+            var level = 0;
+            var baseangle = 20;
+            var diffangle = 20;
+            var maxnode = (360/baseangle -2)/2;
+
             // iteration on graph for all node
             data.graph.nodes.forEach(function (node) {
+
                 var origin = node.properties.tag.split("#")[1];
                 var reachability = node.properties.tag.split("#")[2];
                 var bordercolor = "#80bfff";
                 var nodecolor = '#20A8D8';
-//                console.log(origin);
-//                console.log(reachability);
                 if (reachability.localeCompare("EXTERNAL") == 0)
-                {bordercolor = "#b3cce6";
-                nodecolor = "#3971ac"; //light-blue
+                {
+                    bordercolor = "#b3cce6";
+                    nodecolor = "#3971ac"; //light-blue
                 }
                 else
                 {
                     if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0)
-                    {bordercolor = "#99c2ff";
-                    nodecolor = "#3333ff";//blue
+                    {
+                        bordercolor = "#99c2ff";
+                        nodecolor = "#3333ff";//blue
                     }
                     else if (origin.localeCompare("CMDB") == 0)
-                    {bordercolor = "#00ff55";//green
-                    nodecolor = "#009900";
+                    {
+                        bordercolor = "#00ff55";//green
+                        nodecolor = "#009900";
                     }
                     else if (origin.localeCompare("DISCOVERED") == 0)
-                    {bordercolor = "#ff9999";
-                    nodecolor = "#e60000"; //red :80%
-}
+                    {
+                        bordercolor = "#ff9999";
+                        nodecolor = "#e60000"; //red :80%
+                    }
                 }
+
+                var radius = 1;
+                var angle = 0;
+                var count = 1;
+//                stretch = stretch + .2 * level;
+                level = 1;
+
+                if (node.properties.queue == 0)
+                {angle = 0;}
+                else {
+                    angle = baseangle + diffangle * (node.properties.queue - 1);
+                    if (angle >= 360)
+                    {
+                        level = level + 1;
+                        diffangle = baseangle;
+                        baseangle = baseangle/2;
+                        angle = baseangle + diffangle * (node.properties.queue - 1);
+                        radius = radius + .2 * (level-1);
+                    }
+                    if (angle == 180)
+                    { angle = angle + diffangle;}
+
+                }
+
 
                 var sigmaNode =  {
                     id : node.id,
                     label : "",
-                    x : node.properties.distance + 5,
-                    y : node.properties.queue,
+                    x : (node.properties.distance - 1) + radius * (Math.cos(angle * Math.PI / 180)) + stretch, //h+r*cos(a)
+                    y : radius * Math.sin(angle * Math.PI / 180), //k+r*sin(a), where k = 0
                     size : 15,
                     maxNodeSize: 25,
                     minNodeSize: 15,
@@ -112,12 +146,6 @@
                     borderColor: nodecolor,
                     //borderWidth: 3, //tester demand
                 };
-
-//console.log(sigmaNode.size);
-//sigmaNode.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {
-//  console.log(e.type, e.data.node.label, e.data.captor);
-//});
-
                 if (sigmaNode.id in nodesMap) {
                     // do nothing
                 } else {
@@ -132,9 +160,10 @@
                     label : edge.type,
                     source : edge.startNode,
                     target : edge.endNode,
-                    color : '#888888',
+                    color : '#a6a6a6',
                     neo4j_type : edge.type,
                     neo4j_data : edge.properties,
+                    type: 'tapered',
                     size: 3,
 
                 };
