@@ -11,7 +11,7 @@ import ipaddress
 import netaddr
 import sys
 
-from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm
+from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm
 
 from django import forms
 
