@@ -33,6 +33,7 @@ def action(request, project_id):
     projectform = ProjectForm()
     newprojectform = NewProjectForm()
     cmdbform = CMDBScanForm()
+    
     action = "show"
 
     # validation of project_id
@@ -80,7 +81,7 @@ def action(request, project_id):
     elif "goto" in action:
         output = traceroute(goto_target,33434,30,project_id)
         print "Traceroute result: " + str(output)
-        context = {"project_id": project_id, "newprojectform":newprojectform,  "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "roam" in action:
         myneighbours = roam(project_id)
@@ -120,7 +121,7 @@ def action(request, project_id):
     elif "select" in action:
         print "Project List in Select: " + str(projectform.PROJECT_CHOICES)
         context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
-                   "projectform": projectform,"cmdbform":cmdbform}
+                   "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
     elif "create" in action:
         output = getlocalinfo(project_id)
