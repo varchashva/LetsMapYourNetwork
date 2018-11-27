@@ -36,10 +36,10 @@ SECRET_KEY = '$jn4#*e^!gdt0al!2*4%l09&630ru#xl0a#prd=k0*ep0a3v5w'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 # #Neo4j settings
-config.DATABASE_URL = 'bolt://neo4j:Neo4j@localhost:7687'  # default
+config.DATABASE_URL = 'bolt://localhost:Neo4j@localhost:7687'  # default
 
 
 #
@@ -150,5 +150,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
+
+STATICFILES_DIRS = [
+    "/root/LMYN/core/static/",
+]
 
 STATIC_URL = '/static/'
