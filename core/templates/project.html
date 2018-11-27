@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="/static/dash/css/AdminLTE.min.css">
     <link rel="stylesheet" href="/static/dash/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/LetsMapYourNetwork/src/utils/ipaddr.js"></script>
     <script src="/static/LetsMapYourNetwork/src/sigma.core.js"></script>
     <script src="/static/LetsMapYourNetwork/src/conrad.js"></script>
     <script src="/static/LetsMapYourNetwork/src/utils/sigma.utils.js"></script>
@@ -57,20 +56,17 @@
     <script src="/static/LetsMapYourNetwork/plugins/sigma.neo4j.cypher/sigma.neo4j.cypher.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
-
-
-
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customEdgeShapes/sigma.canvas.edgehovers.tapered.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customEdgeShapes/sigma.canvas.edges.tapered.js"></script>
     <script src="/static/plugins/jQuery/jQuery-2.1.4.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.min.js"></script>
     <script src="/static/plugins/fastclick/fastclick.min.js"></script>
     <script src="/static/dash/js/app.min.js"></script>
     <script src="/static/plugins/slimScroll/jquery.slimscroll.min.js"></script>
     <script src="/static/js/docs.js"></script>
-
 </head>
 
 <!--start of main design-->
-
 <body class="skin-blue fixed" data-spy="scroll" data-target="#scrollspy">
 <div class="wrapper">
     <header class="main-header">
@@ -208,19 +204,35 @@
 
             <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Clear
                 All</a></li>
-
-            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
-
-            <!--<li class="treeview active" >-->
-            <!--<a href="javascript::;"><i class="fa fa-bars" style="color: rgb(184, 199, 206);"></i>Selected Node Details</a>-->
-            <!--<ul class="treeview-menu"><a href=""><div id="hostname"></div></a><br>-->
-            <!--<a href=""><div id="ip"></div></a><br>-->
-            <!--<a href=""><div id="tag"></div></a><br>-->
-            <!--<a href=""><div id="distance"></div></a></ul>-->
-            <!--</li>-->
-            <!--<li style="color: rgb(184, 199, 206);">__________________________________________________________</li>-->
+            <br><br><br>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Node Color Legend</h3>
+                </div>
+                <table class="table table-striped" style="font-size:12px;background-color:#F2F2F2">
+                    <tr>
+                        <td width="20px" bgcolor="#3333ff"></td>
+                        <td>This is your SEED host</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#009900"></td>
+                        <td>Host is live & present in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#e60000"></td>
+                        <td>Host is live & not present in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#20A8D8"></td>
+                        <td>Host is identified live using SCAN</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#3971ac"></td>
+                        <td>This is EXTERNAL host</td>
+                    </tr>
+                </table>
+            </div>
         </ul>
-
     </div>
 </aside>
 
@@ -233,6 +245,7 @@
             right: 0;
             position: absolute;
         }
+
     </style>
     <div id="graph-container"></div>
 </div>
@@ -242,35 +255,23 @@
 
 <script type="application/javascript">
     sigma.neo4j.cypher(
-        {url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'},
-        'MATCH (n) WHERE n.tag =~ ".*{{project_id}}.*" OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m LIMIT 100',
         {
-            container: 'graph-container',
-            type: 'canvas',
-            settings:
-                {
-                    enableEdgeHovering: true,
-                    edgeHoverSizeRatio: 2.5,
-                    defaultEdgeLabelColor: "#000000",
-                    drawEdgeLabels: false, //defines the visibility of edge label
-                                        autoRescale: ['nodePosition','edgeSize'] ,                  //drawLabels: false
-
-                }
+            url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'
         },
+            'MATCH (n) WHERE n.tag =~ ".*{{project_id}}.*" OPTIONAL MATCH (n)-[r]->(m) RETURN n,r ORDER BY n.distance, n.queue',
+            {
+                container: 'graph-container',
+                type: 'canvas',
+                settings:
+                    {
+                        enableEdgeHovering: false, //tester demand
+                        edgeHoverSizeRatio: 2.5,
+                        defaultEdgeLabelColor: "#000000",
+                        drawEdgeLabels: false, //defines the visibility of edge label
+                        autoRescale: ['nodePosition','edgeSize'], //drawLabels: false
+                    }
+            },
         function (s) {
-            <!--s.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {-->
-            <!--console.log(e.type, e.data.node.label, e.data.captor);-->
-            <!--});-->
-
-            <!--s.bind('overEdge',function(e){-->
-            <!--&lt;!&ndash;console.log(e.type,e.data.edge.label);&ndash;&gt;-->
-            <!--s.settings('drawEdgeLabels',true);-->
-            <!--});-->
-            <!--s.bind('outEdge',function(e){-->
-            <!--&lt;!&ndash;console.log(e.type,e.data.edge.label);&ndash;&gt;-->
-            <!--s.settings('drawEdgeLabels',false);-->
-            <!--});-->
-
             // Initialize the dragNodes plugin:
             var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
 
@@ -286,88 +287,14 @@
             dragListener.bind('dragend', function (event) {
                 console.log(event);
             });
-
             s.bind('overNode clickNode', function (e) {
-                <!--console.log(s.renderers[0]);-->
-                <!--console.log(e.type, e.data.node.label, e.data.captor);-->
-                <!--This is where to handle the click function-->
-                <!--location.reload();-->
-
-                <!--e.data.node.color = '#222D32';-->
                 e.data.node.size = e.data.node.maxNodeSize;
-                <!--console.log(e.data.node.neo4j_data.ip);-->
-                <!--console.log(ipaddr.parse(e.data.node.neo4j_data.ip).range());-->
-
-                <!--e.data.node.borderWidth = 5;-->
-                <!--e.data.node.borderColor = '#20A8D8';-->
-            // <
-            //     !--
-            //     var hostname = "<i class='glyphicon glyphicon-info-sign' style='color: rgb(184, 199, 206);'></i> HOSTNAME: " + e.data.node.neo4j_data.hostname;
-            //     -- >
-            //     < !--
-            //     var ip = "<i class='glyphicon glyphicon-certificate' style='color: rgb(184, 199, 206);'></i> IP: " + e.data.node.neo4j_data.ip;
-            //     -- >
-            //     < !--
-            //     var tag = "<i class='glyphicon glyphicon-tag' style='color: rgb(184, 199, 206);'></i> TAG: " + e.data.node.neo4j_data.tag;
-            //     -- >
-            //     < !--
-            //     var distance = "<i class='glyphicon glyphicon-signal' style='color: rgb(184, 199, 206);'></i> DISTANCE: " + e.data.node.neo4j_data.distance;
-            //     -- >
-            //     <!--$('#hostname').html(hostname);-->
-            //     <!--$('#ip').html(ip);-->
-            //     <!--$('#tag').html(tag);-->
-            //     <!--$('#distance').html(distance);-->
                 s.refresh();
             });
             s.bind('outNode', function (e) {
-                var origin = e.data.node.neo4j_data.tag.split("#")[1];
-                var reachability = e.data.node.neo4j_data.tag.split("#")[2];
-                <!--var nodecolor = "#222D32";-->
-                <!--console.log(origin);-->
-                <!--console.log(reachability);-->
-                <!--if (reachability.localeCompare("EXTERNAL") == 0) {-->
-                    <!--e.data.node.color = "#20A8D8";-->
-                <!--}-->
-                <!--else {-->
-                    <!--if (origin.localeCompare("SEED") == 0 || origin.localeCompare("FINDME") == 0) {-->
-                        <!--e.data.node.color = "#3333ff";-->
-                        <!--e.data.node.borderColor = "#99c2ff";-->
-                    <!--}-->
-                    <!--else if (origin.localeCompare("CMDB") == 0) {-->
-                        <!--e.data.node.color = "#009900";-->
-                        <!--e.data.node.borderColor = "#99ffbb";-->
-                    <!--}-->
-                    <!--else if (origin.localeCompare("DISCOVERED") == 0) {-->
-                        <!--e.data.node.color = "#e60000";-->
-                        <!--e.data.node.borderColor = "#ff9999";-->
-                    <!--}-->
-                <!--}-->
-                <!--e.data.node.borderWidth = 5;-->
                 e.data.node.size = e.data.node.minNodeSize;
-                <!--e.data.node.refresh();-->
                 s.refresh();
-                <!--console.log(e.type, e.data.node.label, e.data.node.color);-->
-
-
             });
         }
     );
-
-    // Calling neo4j to get all its relationship type
-    <!--sigma.neo4j.getTypes(-->
-    // <
-    // !--{url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'}, -- >
-    // <!--function(types) {-->
-    // <!--console.log("Relationship types: " + types);-->
-    // <!--}-->
-    // <!--);-->
-    //
-    // < !--// Calling neo4j to get all its node label-->
-    // <!--sigma.neo4j.getLabels(-->
-    // < !--{url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'}, -- >
-    // <!--function(labels) {-->
-    // <!--console.log("Node labels: " + labels);-->
-    // <!--}-->
-    // <!--);-->
-
 </script>

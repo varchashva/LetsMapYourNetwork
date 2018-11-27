@@ -1,0 +1,24 @@
+version: '3'
+services:
+  neo4j:
+    image: "neo4j:3.3.0"
+    restart: always
+    volumes:
+      - /data
+    environment:
+      - NEO4J_AUTH=none # Neo4j authentication is disabled for Docker installation
+    ports:
+     - "7474:7474"
+     - "7687:7687"
+     - "7473:7473"
+    network_mode: host
+  lmyn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+     - "9999:9999"
+    network_mode: host
+    depends_on:
+     - neo4j
+    command: ["./wait-for-neo4j.sh", "python","manage.py","runserver","0.0.0.0:9999"]

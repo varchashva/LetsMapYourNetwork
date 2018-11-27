@@ -23,7 +23,7 @@
           edge.active_color || settings('defaultEdgeActiveColor') :
           edge.color,
         prefix = settings('prefix') || '',
-        size = edge[prefix + 'size'] || 1,
+        size = edge['size'] || 1,
         edgeColor = settings('edgeColor'),
         prefix = settings('prefix') || '',
         defaultNodeColor = settings('defaultNodeColor'),
