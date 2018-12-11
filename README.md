@@ -31,7 +31,11 @@ Below technologies have been used in the tool:
 #### WHERE TO USE IT #### 
 1. Network Architecture 'Validation'
 2. Troubleshooting for network administrator
-3. Internal Network VAPT     
+3. Internal Network VAPT
+
+### Documentation ###
+ - [BlackHatEurope2018 presentation slide](docs/LetsMapYourNetwork_BlackHat.pdf)
+ - [Demo Videos](https://www.youtube.com/channel/UC77eNGlIzjGL0fgx3i6Hcyw)
 
 ## INSTALLATION GUIDELINES ##
 
