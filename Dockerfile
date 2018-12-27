@@ -4,20 +4,13 @@ FROM ubuntu:18.04
 # working directory
 WORKDIR /root/LMYN
 
-# Install Nmap
-RUN apt-get update -y && apt-get install -y nmap
-
-# Install CURL
-RUN apt-get install -y curl
-
-# Install python2.7
-RUN apt-get install -y python2.7
+# Install pre-requisites
+RUN apt-get update -y && apt-get install -y nmap curl python2.7 python-pip python-setuptools --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # Copy the entire code to working directory
 COPY . /root/LMYN
 
-# Install pre-requisites
-RUN apt install -y python-pip
+# Install requirements.txt from pip
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 EXPOSE 9999
