@@ -13,9 +13,8 @@ services:
      - "7473:7473"
     network_mode: host
   lmyn:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: "pramodrana/letsmapyournetwork:1.0"
+    restart: always
     ports:
      - "9999:9999"
     network_mode: host
