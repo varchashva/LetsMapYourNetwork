@@ -39,17 +39,15 @@ Below technologies have been used in the tool:
 
 ## INSTALLATION GUIDELINES ##
 
-#### TL;DR (docker installation - Linux) ####
+### Short version ###
 
-1. Install [docker](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository)
+#### Using DockerHub - Linux only ####
+1. Install [docker & docker-compose](https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository)
    - sudo apt-get update
-   - sudo apt-get install docker-ce
-   - sudo docker run hello-world
-2. git clone https://github.com/varchashva/LetsMapYourNetwork.git
-3. cd LetsMapYourNetwork
-4. sudo docker-compose build
-5. sudo docker-compose up
-6. Browse to http://localhost:9999/core and you are set to explore the tool :)
+   - sudo apt-get install docker-ce docker-compose
+2. wget https://raw.githubusercontent.com/varchashva/LetsMapYourNetwork/master/docker-compose.yml
+3. docker-compose up
+4. Browse to http://localhost:9999/core and you are set to explore the tool :)
 
 ### Long version ###
 #### For Linux User (Note - Below commands have been provided for Debian-based linux. For other versions of Linux change all commands accordingly) #### 
@@ -115,10 +113,11 @@ Below technologies have been used in the tool:
    - More action you perform, more visibility you get about the network 
 
 #### FUTURE TO-DO #### 
-1. More interactive actions for node 
-2. Grouping of systems – like same subnet IPs as one group
-3. System fingerprinting
-4. Geographical location mapping
+1. Continuos Monitoring
+2. More interactive actions for node
+3. Grouping of systems – like same subnet IPs as one group
+4. System fingerprinting
+5. Geographical location mapping
 
 Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
 
