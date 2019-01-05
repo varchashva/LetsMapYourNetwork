@@ -22,4 +22,4 @@ urlpatterns = [
     url(r'^core/', include('core.urls')),
 ]
 
-#admin.autodiscover()
+# admin.autodiscover()

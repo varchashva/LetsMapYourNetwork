@@ -84,7 +84,12 @@
                 var reachability = node.properties.tag.split("#")[2];
                 var bordercolor = "#80bfff";
                 var nodecolor = '#20A8D8';
-                if (reachability.localeCompare("EXTERNAL") == 0)
+                var state = node.properties.tag.split("#")[3];
+                if (state.localeCompare("DOWN") == 0)
+                {
+                    nodecolor = "#a6a6a6";
+                }
+                else if (reachability.localeCompare("EXTERNAL") == 0)
                 {
                     bordercolor = "#b3cce6";
                     nodecolor = "#3971ac"; //light-blue

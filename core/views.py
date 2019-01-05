@@ -26,6 +26,65 @@ import nmap
 def index(request):
     return redirect("/core/default/action")
 
+def refresh(request,project_id):
+    # 1. Save state
+    prevstate = Machine.nodes.filter(tag__startswith=project_id)
+    print "Before refresh:"
+    print len(prevstate)
+    for node in prevstate:
+        print node.ip
+
+    # 2. Identify current state
+    currentstate = []
+    findit = project_id + "#SEED"
+    node = Machine.nodes.get(tag__startswith=findit) ## need to change to handle the SEED host IP change | multiple SEED creation
+    actions = node.action.split("$")
+    for action in actions:
+        # print action
+        if str(action).startswith("GOTO"):
+            print str(action).split("#")[0] + " " + str(action).split("#")[1]
+            path = traceroute(str(action).split("#")[1], 33434, 30, project_id)
+            currentstate += path
+            print "Traceroute result: " + str(path)
+        elif str(action).startswith("ROAM"):
+            print str(action).split("#")[0]
+            myneighbours = roam(project_id)
+            currentstate += myneighbours
+            print "My neighbours: " + str(myneighbours)
+        elif str(action).startswith("SCAN"):
+            print str(action).split("#")[0] + " " + str(action).split("#")[1]
+            scanresult = scan(str(action).split("#")[1], project_id)
+            print "Scan results: " + str(scanresult)
+            currentstate += scanresult
+    print "Current state:"
+    print len(currentstate)
+    for node in currentstate:
+        print node.ip
+
+    # 3. Compare
+    for pnode in prevstate:
+        isavailable = False
+        for cnode in currentstate:
+            if pnode.ip == cnode.ip:
+                pnode.tag = str(pnode.tag).replace("DOWN","UP")
+                pnode.save()
+                isavailable = True
+                break
+        if isavailable == False:
+            print "Not available: " + pnode.ip
+            pnode.tag = str(pnode.tag).replace("UP","DOWN")
+            pnode.save()
+
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+
+    context = {"project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform}
+    return render(request, 'project.html', context)
+
 def action(request, project_id):
     print "Start Action"
     gotoform = GoToForm()
@@ -81,11 +140,13 @@ def action(request, project_id):
     elif "goto" in action:
         output = traceroute(goto_target,33434,30,project_id)
         print "Traceroute result: " + str(output)
+        addaction(project_id,"GOTO",goto_target)
         context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "roam" in action:
         myneighbours = roam(project_id)
         print "My neighbours: " + str(myneighbours)
+        addaction(project_id,"ROAM","NA")
         context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "clear" in action:
@@ -94,32 +155,35 @@ def action(request, project_id):
         context = {"project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "scan" in action:
-        scanresult = networkscan(scanrange)
+        scanresult = scan(scanrange,project_id)
         print "Scan results: " + str(scanresult)
+        # scanresult = networkscan(scanrange)
+        # print "Scan results: " + str(scanresult)
+        #
+        # localinfo = getlocalinfo(project_id)
+        # inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
+        # local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
+        #     netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
+        # print "Local IP range " + local_ip_range
+        #
+        # gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+        # subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
+        # gatewaynewnode = makeanode(gateway, subnet, project_id,1,"SCAN")
+        #
+        # for ip in scanresult:
+        #     if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
+        #         print "In local range: " + ip
+        #         node = makeanode(ip,subnet,project_id,2,"SCAN")
+        #         gatewaynewnode.connected.connect(node)
+        #     else:
+        #         print "Performing traceroute to " + ip
+        #         traceroute(ip,33434,30,project_id)
 
-        localinfo = getlocalinfo(project_id)
-        inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
-        local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
-            netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-        print "Local IP range " + local_ip_range
-
-        gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
-        gatewaynewnode = makeanode(gateway, subnet, project_id,1,"SCAN")
-
-        for ip in scanresult:
-            if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-                print "In local range: " + ip
-                node = makeanode(ip,subnet,project_id,2,"SCAN")
-                gatewaynewnode.connected.connect(node)
-            else:
-                print "Performing traceroute to " + ip
-                traceroute(ip,33434,30,project_id)
+        addaction(project_id,"SCAN",scanrange)
         context = { "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                     "projectform": projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "select" in action:
-        print "Project List in Select: " + str(projectform.PROJECT_CHOICES)
         context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                    "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
@@ -181,6 +245,14 @@ def action(request, project_id):
         context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
 
+def addaction(project_id,action, param):
+    findit = project_id + "#SEED"
+    node = Machine.nodes.get(tag__startswith=findit)
+    print node.action
+    node.action = node.action + "$" + action + "#" + param
+    node.save()
+    print "Action updated: " + node.action
+
 def clear(project_id):
     for allnodes in Machine.nodes.filter(tag__startswith=project_id):
         allnodes.delete()
@@ -208,6 +280,7 @@ def getlocalinfo(project):
     return localip + "$" + subnet + "$" + localinterface
 
 def roam(project):
+    newnodes = []
     #  need to modify the code to enumerate the interfaces better
     localinfo = getlocalinfo(project)
     inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])
@@ -223,13 +296,15 @@ def roam(project):
     print "Subnet: " + subnet
 
     gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN")
+    newnodes.append(gatewaynewnode)
     live_ip_nodes = networkscan(ips)
 
     for ip in live_ip_nodes:
         node = makeanode(ip,subnet,project,2,"SCAN")  # need to change the subnet ICMP Address Mask Ping (-PM)
         gatewaynewnode.connected.connect(node)
+        newnodes.append(node)
 
-    return live_ip_nodes
+    return newnodes
 
 
 def traceroute(hostname, port, max_hops,project):
@@ -239,6 +314,7 @@ def traceroute(hostname, port, max_hops,project):
     icmp = socket.getprotobyname('icmp')
     udp = socket.getprotobyname('udp')
     ttl = 1
+    newnodes = []
     nodes = ""
     edges = ""
     localinfo = getlocalinfo(project)
@@ -248,6 +324,8 @@ def traceroute(hostname, port, max_hops,project):
         previousnode = Machine.nodes.get(ip=localip,tag__startswith=project)
     except Machine.DoesNotExist as ex:
         previousnode = makeanode(localip,subnet,project,0,"SEED")
+    finally:
+        newnodes.append(previousnode)
 
     while True:
         recvsock = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
@@ -278,15 +356,16 @@ def traceroute(hostname, port, max_hops,project):
 
             if ttl<2:
                 previousnode = makeanode(currenthost, subnet,project,ttl,"TRACEROUTE")
+                newnodes.append(previousnode)
             else:
                 newnode = makeanode(currenthost,subnet,project,ttl,"TRACEROUTE")
                 newnode.connected.connect(previousnode)
                 previousnode = newnode
-
+                newnodes.append(newnode)
         ttl += 1
         if currentaddr == destination or ttl > max_hops:
             break
-    return nodes + "#" + edges
+    return newnodes
 
 
 def makeanode(ip,subnet,project,distance,origin):
@@ -304,16 +383,46 @@ def makeanode(ip,subnet,project,distance,origin):
 
         count = len(Machine.nodes.filter(distance=distance).filter(tag__startswith=project))
         if ipaddress.ip_address(unicode(ip.split("#")[0])).is_private:
-            tag = project + "#" + origin + "#INTERNAL"
+            tag = project + "#" + origin + "#INTERNAL#UP"
         else:
-            tag = project + "#" + origin + "#EXTERNAL"
+            tag = project + "#" + origin + "#EXTERNAL#UP"
 
-        newnode = Machine(ip=ip, hostname=hostname, subnet=subnet,tag=tag, distance=distance,queue=count)
+        newnode = Machine(ip=ip, hostname=hostname, subnet=subnet,tag=tag, distance=distance,queue=count,action="")
         newnode.save()
         print "New Node: " + newnode.ip
         return newnode
 
     return checknode
+
+def scan(scanrange,project_id):
+    newnodes = []
+    scanresult = networkscan(scanrange)
+    print "Scan results: " + str(scanresult)
+
+    localinfo = getlocalinfo(project_id)
+    inet_addrs = netifaces.ifaddresses(
+        localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
+    local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
+        netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
+    print "Local IP range " + local_ip_range
+
+    gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+    subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
+    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "SCAN")
+    newnodes.append(gatewaynewnode)
+
+    for ip in scanresult:
+        if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
+            print "In local range: " + ip
+            node = makeanode(ip, subnet, project_id, 2, "SCAN")
+            gatewaynewnode.connected.connect(node)
+            newnodes.append(node)
+        else:
+            print "Performing traceroute to " + ip
+            path = traceroute(ip, 33434, 30, project_id)
+            print path
+            newnodes.append(path)
+    return newnodes
 
 
 def networkscan(scanrange):
