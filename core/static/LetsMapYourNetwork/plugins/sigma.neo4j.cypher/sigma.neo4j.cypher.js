@@ -234,7 +234,6 @@
                              };
 
                 graph = sigma.neo4j.cypher_parse(response);
-
                 // Update the instance's graph:
                 if (sig instanceof sigma) {
                     sig.graph.clear();
