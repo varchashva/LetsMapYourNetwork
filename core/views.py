@@ -1,25 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-
-from scapy.all import *
-from platform import system as system_name # Returns the system/OS name
-from os import system as system_call       # Execute a shell command -> Replace with subprocess
 import socket
 import netifaces
 import ipaddress
 import netaddr
-import sys
-
 from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm
-
-from django import forms
-
 from django.shortcuts import render,redirect
-from django.http import HttpResponse
 from .models import Machine
-from django.core.files.storage import FileSystemStorage
-import neomodel
 import os
 import nmap
 
@@ -36,8 +24,8 @@ def refresh(request,project_id):
 
     # 2. Identify current state
     currentstate = []
-    findit = project_id + "#SEED"
-    node = Machine.nodes.get(tag__startswith=findit) ## need to change to handle the SEED host IP change | multiple SEED creation
+    findseed = project_id + "#SEED"
+    node = Machine.nodes.get(tag__startswith=findseed)
     actions = node.action.split("$")
     for action in actions:
         # print action
@@ -81,7 +69,27 @@ def refresh(request,project_id):
     newprojectform = NewProjectForm()
     cmdbform = CMDBScanForm()
 
-    context = {"project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+
+
+    actionList = []
+    findseed = project_id + "#SEED"
+    node = Machine.nodes.get(
+        tag__startswith=findseed)
+    actions = node.action.split("$")
+
+    for action in actions:
+        actionList.append(action)
+
+    actionList = list(set(actionList))
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+        projectList = list(set(projectList))
+        projectList.sort()
+
+
+    context = {"projectList": projectList, "actionList": actionList, "project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
                "projectform": projectform, "cmdbform": cmdbform}
     return render(request, 'project.html', context)
 
@@ -92,7 +100,13 @@ def action(request, project_id):
     projectform = ProjectForm()
     newprojectform = NewProjectForm()
     cmdbform = CMDBScanForm()
-    
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+        projectList = list(set(projectList))
+        projectList.sort()
+
     action = "show"
 
     # validation of project_id
@@ -104,6 +118,7 @@ def action(request, project_id):
         if "goto_target" in request.POST:
             gotoform = GoToForm(request.POST)
             if gotoform.is_valid():
+                action = "goto"
                 action = "goto"
                 goto_target = gotoform.cleaned_data["goto_target"]
         elif "scanrange" in request.POST:
@@ -135,65 +150,140 @@ def action(request, project_id):
     if "findme" in action:
         output = getlocalinfo(project_id)
         print "Local Info: " + str(output)
-        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "goto" in action:
         output = traceroute(goto_target,33434,30,project_id)
         print "Traceroute result: " + str(output)
-        addaction(project_id,"GOTO",goto_target)
-        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        for node in output:
+            addaction(project_id,"GOTO",goto_target,node)
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "roam" in action:
         myneighbours = roam(project_id)
         print "My neighbours: " + str(myneighbours)
-        addaction(project_id,"ROAM","NA")
-        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        localinfo = getlocalinfo(project_id)
+        inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])
+        mylocalrange = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
+            netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
+
+        for node in myneighbours:
+            addaction(project_id,"ROAM",mylocalrange, node)
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "clear" in action:
         clear(project_id)
         print "All clear..."
-        context = {"project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "scan" in action:
         scanresult = scan(scanrange,project_id)
         print "Scan results: " + str(scanresult)
-        # scanresult = networkscan(scanrange)
-        # print "Scan results: " + str(scanresult)
-        #
-        # localinfo = getlocalinfo(project_id)
-        # inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
-        # local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
-        #     netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-        # print "Local IP range " + local_ip_range
-        #
-        # gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        # subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
-        # gatewaynewnode = makeanode(gateway, subnet, project_id,1,"SCAN")
-        #
-        # for ip in scanresult:
-        #     if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-        #         print "In local range: " + ip
-        #         node = makeanode(ip,subnet,project_id,2,"SCAN")
-        #         gatewaynewnode.connected.connect(node)
-        #     else:
-        #         print "Performing traceroute to " + ip
-        #         traceroute(ip,33434,30,project_id)
+        for node in scanresult:
+            addaction(project_id,"SCAN",scanrange, node)
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
 
-        addaction(project_id,"SCAN",scanrange)
-        context = { "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                     "projectform": projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "select" in action:
-        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                    "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
     elif "create" in action:
         output = getlocalinfo(project_id)
         print "Project created: " + output
-        # neomodel.db.set_connection('bolt://neo4j:Neo4j@localhost:7687')
-        # neomodel.Database.__init__()
         print "Reinitialized DB"
-        context = {"project_id": project_id, "newprojectform": newprojectform,
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id, "newprojectform": newprojectform,
                    "gotoform": gotoform,
                    "scanform": scanform,
                    "projectform": projectform,"cmdbform":cmdbform}
@@ -231,7 +321,7 @@ def action(request, project_id):
         if str(request.POST.get("beintrusive", None)) == "on":
             traceroute("google.com", 33434, 30, project_id)  # perform traceroute to (multiple?)google.com
             local_ip_range = localip + "/" + str(netaddr.IPAddress(subnet).netmask_bits())
-            scanresult = networkscan(local_ip_range )# Scan all live LOCAL IPs
+            scanresult = networkscan(local_ip_range )
             for ip in scanresult:
                 origin = "DISCOVERED"
                 for cmdb_file_ip in cmdb_file_ips:
@@ -242,15 +332,31 @@ def action(request, project_id):
                 gatewaynewnode.connected.connect(node)
         return redirect("/core/" + str(project_id) + "/action")
     else:
-        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        actionList = []
+        findseed = project_id + "#SEED"
+        node = Machine.nodes.get(
+            tag__startswith=findseed)
+        actions = node.action.split("$")
+
+        for action in actions:
+            actionList.append(action)
+
+        actionList = list(set(actionList))
+
+        print actionList
+
+        context = {"actionList": actionList,"projectList":projectList, "project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
 
-def addaction(project_id,action, param):
-    findit = project_id + "#SEED"
-    node = Machine.nodes.get(tag__startswith=findit)
+def addaction(project_id,action, param, node):
+    findseed = project_id + "#SEED"
+    seednode = Machine.nodes.get(tag__startswith=findseed)
+    seednode.action = seednode.action + "$" + action + "#" + param
     print node.action
+    print seednode.action
     node.action = node.action + "$" + action + "#" + param
     node.save()
+    seednode.save()
     print "Action updated: " + node.action
 
 def clear(project_id):
@@ -397,7 +503,6 @@ def makeanode(ip,subnet,project,distance,origin):
 def scan(scanrange,project_id):
     newnodes = []
     scanresult = networkscan(scanrange)
-    print "Scan results: " + str(scanresult)
 
     localinfo = getlocalinfo(project_id)
     inet_addrs = netifaces.ifaddresses(
@@ -421,7 +526,8 @@ def scan(scanrange,project_id):
             print "Performing traceroute to " + ip
             path = traceroute(ip, 33434, 30, project_id)
             print path
-            newnodes.append(path)
+            for pathnode in path:
+                newnodes.append(pathnode)
     return newnodes
 
 
