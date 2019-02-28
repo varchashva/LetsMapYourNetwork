@@ -1,0 +1,79 @@
+{% extends "master.html" %}
+{% block content %}
+
+<div id="container">
+<style>
+        #dashboard-container {
+            top: 60;
+            bottom: 0;
+            left: 300;
+            right: 0;
+            position: absolute;
+        }
+    </style>
+    <div id="dashboard-container">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="info-box">
+                            <span class="info-box-icon bg-green"><i class="fa fa-bar-chart" style="padding-top:20px"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Projects</span>
+                                <span class="info-box-number">{{project_count}}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-box">
+                            <span class="info-box-icon bg-blue"><i class="fa fa-server" style="padding-top:20px"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Hosts</span>
+                                <span class="info-box-number">{{host_count}}</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                 <tr>
+                    <td>
+                        <div class="info-box">
+                            <span class="info-box-icon bg-red"><i class="fa fa-warning" style="padding-top:20px"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Rogue Systems</span>
+                                <span class="info-box-number">{{rogue_system_count}}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="info-box">
+                            <span class="info-box-icon bg-grey"><i class="fa fa-question-circle" style="padding-top:20px"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Down Hosts</span>
+                                <span class="info-box-number">{{down_host_count}}</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+<script>
+$(document).ready(function(){
+  $("#searchform").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $(".dropdown-menu li").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+document.getElementById('historyprogressbar').innerHTML = "ALL COMPLETED";
+document.getElementById("historyprogressbar").style.width = "100%";
+</script>
+
+{% endblock %}
+
+

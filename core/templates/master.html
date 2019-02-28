@@ -1,0 +1,303 @@
+<html>
+<head>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <link rel="stylesheet" href="/static/dash/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="/static/dash/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/LetsMapYourNetwork/src/sigma.core.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/conrad.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/utils/sigma.utils.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/utils/sigma.polyfills.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/sigma.settings.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.dispatcher.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.configurable.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.graph.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.camera.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.quad.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/classes/sigma.classes.edgequad.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/captors/sigma.captors.mouse.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/captors/sigma.captors.touch.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/sigma.renderers.canvas.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/sigma.renderers.webgl.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/sigma.renderers.svg.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/sigma.renderers.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.utils.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.nodes.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.edges.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.edges.curve.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.labels.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/renderers/svg/sigma.svg.hovers.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/middlewares/sigma.middlewares.rescale.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/middlewares/sigma.middlewares.copy.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/misc/sigma.misc.animation.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/misc/sigma.misc.bindEvents.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/misc/sigma.misc.bindDOMEvents.js"></script>
+    <script src="/static/LetsMapYourNetwork/src/misc/sigma.misc.drawHovers.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.parsers.json/sigma.parsers.json.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.neo4j.cypher/sigma.neo4j.cypher.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.plugins.dragNodes/sigma.plugins.dragNodes.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customEdgeShapes/sigma.canvas.edgehovers.tapered.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customEdgeShapes/sigma.canvas.edges.tapered.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customNodes/sigma.canvas.nodes.def.js"></script>
+    <script src="/static/plugins/jQuery/jQuery-3.3.1.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap-select.min.js"></script>
+    <script src="/static/plugins/fastclick/fastclick.min.js"></script>
+    <script src="/static/dash/js/app.min.js"></script>
+    <script src="/static/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="/static/js/docs.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.layout.forceAtlas2/worker.js"></script>
+    <script src="/static/LetsMapYourNetwork/plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+</head>
+
+<!--start of main design-->
+<body class="skin-blue fixed" data-spy="scroll" data-target="#scrollspy" onload="updateGraph('','{{project_id}}');">
+<div class="wrapper">
+    <header class="main-header">
+        <a href="/core/statistics" class="logo">
+            <span class="logo-lg">Let's Map<b> YOUR </b>Network</span>
+            <span class="logo-mini">LM<b>Y</b>N</span>
+        </a>
+        <nav class="navbar navbar-static-top" role="navigation">
+            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                <span class="sr-only">Toggle navigation</span>
+            </a>
+            <div class="navbar-custom-menu">
+                <span class="dropdown" style="float:left;padding:9px">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select Project<span class="caret"></span></button>
+                    <span class="badge" style="background:#3971ac"><i class="glyphicon glyphicon-ok" style="padding-right:5px;color: rgb(184, 199, 206);"></i>{{project_id}}</span>
+                    <ul class="dropdown-menu">
+                        <input class="form-control" id="searchform" type="text" style="padding: 10px;margin-top: -6px;border: 0;border-radius: 0;background: #f1f1f1;" placeholder="Search...">
+                        {% for project in projectList %}
+                            <li><a href="/core/{{project}}/action">{{project}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </span>
+                <span class="dropdown" style="float:left;padding:9px">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Apply Filter<span class="caret"></span></button>
+                    <span id="filterSpan"></span>
+                    <ul class="dropdown-menu" id="filterMenu">
+                        <input class="form-control" id="filterform" type="text" style="padding: 10px;margin-top: -6px;border: 0;border-radius: 0;background: #f1f1f1;" placeholder="Search...">
+                        {% load filters %}
+                        <li class="dropdown-header"><b>Filter by activities</b></li>
+                        {% for action in actionList %}
+                            <li><a href="#" onclick="return applyFilter(this,'{{project_id}}');">{{action}}</a></li>
+                        {% endfor %}
+                        <li role="presentation" class="divider"></li>
+                        <li class="dropdown-header"><b>Filter by properties</b></li>
+                        {% for enum in enumList %}
+                            <li><a href="#" onclick="return applyFilter(this,'{{project_id}}');">{{enum}}</a></li>
+                        {% endfor %}
+                    </ul>
+                </span>
+                <ul class="nav navbar-nav">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/core/{{project_id}}/refresh"><i class="glyphicon glyphicon-refresh" style="line-height:1.3"></i></a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav">
+                        <li><a href="https://github.com/varchashva/letsmapyournetwork/blob/master/README.md">About</a>
+                        </li>
+                    </ul>
+                </ul>
+            </div>
+        </nav>
+    </header>
+</div>
+<!--start of side bar-->
+<aside class="main-sidebar">
+    <div class="sidebar" id="scrollspy">
+        <ul class="nav sidebar-menu">
+            <li class="treeview">
+                <a href="javascript::;"><i class="glyphicon glyphicon-upload" style="color: rgb(184, 199, 206);"></i>Map CMDB</a>
+                <ul class="nav treeview-menu">
+                    <div class="input-group">
+                        <form id="cmdbform" class="md-form" enctype="multipart/form-data" action="/core/{{project_id}}/action" method="POST">
+                            <div class="input-group-prepend" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;">
+                                <input type="checkbox" name="beintrusive" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;"> Be INTRUSIVE
+                                <input type="file" class="btn btn-primary" name="cmdbfilepath" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;display:inline;width:95px;">
+                                <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                    <i class="fa fa-forward" style="color: rgb(184, 199, 206);"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </ul>
+            </li>
+            <li><a href="/core/{{project_id}}/action?action=findme"><i class="glyphicon glyphicon-search"></i> Find Me</a></li>
+            <li class="treeview">
+                <a href="javascript::;">
+                    <i class="glyphicon glyphicon-tasks" style="color: rgb(184, 199, 206);"></i>Network Activities
+                </a>
+                <ul class="nav treeview-menu">
+                    <li><a href="/core/{{project_id}}/action?action=roam"><i class="glyphicon glyphicon-globe"></i> Roam Around</a></li>
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="fa fa-map-marker" style="color: rgb(184, 199, 206);"></i> Go To</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form id="gotoform" class="form-inline" action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                        {{gotoform.goto_target}}
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-fighter-jet" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="glyphicon glyphicon-zoom-in" style="color: rgb(184, 199, 206);"></i> Scan</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                        {{scanform}}
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-spinner" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="treeview">
+                <a href="javascript::;">
+                    <i class="glyphicon glyphicon-cloud" style="color: rgb(184, 199, 206);"></i>Cloud Activities
+                </a>
+                <ul class="nav treeview-menu">
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="fa fa-amazon" style="color: rgb(184, 199, 206);"></i> AWS</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form id="awsform" class="form-inline" action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                        {{awsform.access_key}}<br>
+                                        {{awsform.access_id}}
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-chevron-right" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="fa fa-windows" style="color: rgb(184, 199, 206);"></i> Azure</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                        {{azureform.access_key}}<br>
+                                        {{azureform.access_id}}
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-chevron-right" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="treeview">
+                <a href="javascript::;">
+                    <i class="glyphicon glyphicon-folder-close" style="color: rgb(184, 199, 206);"></i>
+                    Project Management
+                </a>
+                <ul class="nav treeview-menu">
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i>Create Project</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                       <span class="text" style="background:black"> {{newprojectform}}</span>
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-plus" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+                    <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Delete Project</a></li>
+                </ul>
+
+            </li>
+
+            <li class="treeview" id="historybar">
+                <a href="javascript::;" id="historylink"><i class="glyphicon glyphicon-hourglass" style="color: rgb(184, 199, 206);"></i>History</a>
+                <ul class="nav treeview-menu">
+                    {% load filters %}
+                    {% for history in historyList %}
+                    <li><a href=""><i class="glyphicon glyphicon-minus" style="color: rgb(184, 199, 206);"></i> {{history|parsehistory}}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <div class="progress">
+                <b><div class="progress-bar progress-bar-striped active" style="width:0%;" id= "historyprogressbar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div></b>
+            </div>
+
+            <br><br><br>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Node Color Legend</h3>
+                </div>
+                <table class="table table-striped" style="font-size:12px;background-color:#F2F2F2">
+                    <tr>
+                        <td width="20px" bgcolor="#3333ff"></td>
+                        <td>This is your SEED host</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#009900"></td>
+                        <td>Host is live & present in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#e60000"></td>
+                        <td>Host is live & not present in CMDB</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#20A8D8"></td>
+                        <td>Host is identified live using SCAN</td>
+                    </tr>
+                    <tr>
+                        <td width="20px" bgcolor="#3971ac"></td>
+                        <td>This is EXTERNAL host</td>
+                    </tr>
+                </table>
+            </div>
+        </ul>
+    </div>
+</aside>
+</div>
+{% block content %}
+{% endblock %}
+</body>
+</html>

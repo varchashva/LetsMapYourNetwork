@@ -46,7 +46,6 @@
         xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
-                // Call the callback if specified:
                 callback(JSON.parse(xhr.responseText));
             }
         };
@@ -76,6 +75,14 @@
             var baseangle = 20;
             var diffangle = 20;
             var maxnode = (360/baseangle -2)/2;
+            var icons = {
+                "windows": "\uf17a",
+                "linux": "\uf17c",
+                "voip": "\uf095",
+                "router": "\uf108",
+                "switch": "\uf108",
+                "unknown": "\uf128",
+                };
 
             // iteration on graph for all node
             data.graph.nodes.forEach(function (node) {
@@ -103,7 +110,7 @@
                     }
                     else if (origin.localeCompare("CMDB") == 0)
                     {
-                        bordercolor = "#00ff55";//green
+                        bordercolor = "#00ff55"; //green
                         nodecolor = "#009900";
                     }
                     else if (origin.localeCompare("DISCOVERED") == 0)
@@ -136,6 +143,10 @@
 
                 }
 
+                var fa_icon_unicode = icons["unknown"];
+                if (node.properties.enum.toString().includes("#")){
+                    fa_icon_unicode = icons[node.properties.enum.toString().split("#")[0].toLowerCase()];
+                }
 
                 var sigmaNode =  {
                     id : node.id,
@@ -145,10 +156,16 @@
                     size : 15,
                     maxNodeSize: 25,
                     minNodeSize: 15,
-                    color : nodecolor,
                     neo4j_labels : node.labels,
                     neo4j_data : node.properties,
                     borderColor: nodecolor,
+                    color: nodecolor,
+                    icon: {
+                        font: 'FontAwesome',
+                        content: fa_icon_unicode,
+                        color: "#FFF",
+                        scale: 1.0
+                    },
                     //borderWidth: 3, //tester demand
                 };
                 if (sigmaNode.id in nodesMap) {
@@ -170,6 +187,7 @@
                     neo4j_data : edge.properties,
                     type: 'tapered',
                     size: 3,
+
 
                 };
 
@@ -288,8 +306,21 @@
         sigma.neo4j.send(neo4j, '/db/data/relationship/types', 'GET', null, callback);
     };
 
+    sigma.neo4j.getNodes = function(neo4j, cypher, callback) {
 
+        // Data that will be send to the server
+       var data = JSON.stringify({
+            "statements": [
+                {
+                    "statement": cypher,
+                    "resultDataContents": ["graph"],
+                    "includeStats": false
+                }
+            ]
+        });
 
+        sigma.neo4j.send(neo4j,'/db/data/transaction/commit' , 'POST', data, callback);
+    };
 }).call(this);
 
     

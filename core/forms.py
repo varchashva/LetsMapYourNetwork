@@ -22,3 +22,13 @@ class ScanForm(forms.Form):
 
 class CMDBScanForm(forms.Form):
     cmdb_file = forms.FileField()
+
+
+class AWSForm(forms.Form):
+    access_key = forms.CharField(label="",initial="[AWS Access Key]")
+    access_id = forms.CharField(label="", initial="[AWS Access ID]")
+
+
+class AzureForm(forms.Form):
+    access_key = forms.CharField(label="", initial="[Azure Access Key]")
+    access_id = forms.CharField(label="", initial="[Azure Access ID]")
