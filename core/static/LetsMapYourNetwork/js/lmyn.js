@@ -35,7 +35,6 @@ var bgActivitiesCheckFunction = setInterval(function(){
 
     $.post("task_state",function(status)
     {
-        console.log(status);
         if (status.includes("Success"))
         {
             console.log("Stopping montoring...");
@@ -73,7 +72,7 @@ $(document).ready(function(){
 
 function applyFilter(source,project_id)
 {
-    knownTech = ['Windows','Linux','Router','VoIP','Switch'];
+    knownTech = ['Windows','Linux','Router','VoIP','Switch','VPCPeer','InternetGateway','VPNGateway','InlineRouter'];
     filterHTML =  '<a id="filtera" class="btn icon-btn btn-warning" href="#" onclick="removeFilter(this,'+"'"+project_id+"'"+');" style="padding: 1px 6px 3px 2px;font-size:12px;border-radius:50px;background:#3971ac;border-color:#3971ac;font-weight:700"> \
                    <i class="glyphicon glyphicon-remove" style="padding:2px 5px;color: rgb(184, 199, 206)"></i>'
                     + source.innerHTML
@@ -90,6 +89,9 @@ function applyFilter(source,project_id)
         else if((links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length)).includes("Unknown")){
             filterString += 'n.enum = "" OR ';
         }
+        else if((links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length)).includes("vpc")){
+            filterString += 'n.cloud =~ ".*' + links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length) + '.*" OR ';
+        }
         else
         {
             filterString += 'n.action =~ ".*' + links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length) + '.*" OR ';
@@ -102,7 +104,7 @@ function applyFilter(source,project_id)
 
 function removeFilter(source,project_id)
 {
-    knownTech = ['Windows','Linux','Router','VoIP','Switch'];
+    knownTech = ['Windows','Linux','Router','VoIP','Switch','VPCPeer','InternetGateway','VPNGateway','InlineRouter'];
     $("a").filter(".icon-btn").remove( ":contains('"+ source.innerHTML.substring(source.innerHTML.indexOf("</i>") + "</i>".length) +"')");
     links = document.getElementById('filterSpan').getElementsByTagName('a');
     if (links.length <= 0)
@@ -121,8 +123,10 @@ function removeFilter(source,project_id)
             else if((links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length)).includes("Unknown")){
                 filterString += 'n.enum = "" OR ';
             }
-            else
-            {
+            else if((links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length)).includes("vpc")){
+                filterString += 'n.cloud =~ ".*' + links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length) + '.*" OR ';
+            }
+            else{
                 filterString += 'n.action =~ ".*' + links[i].innerHTML.substring(links[i].innerHTML.indexOf("</i>") + "</i>".length) + '.*" OR ';
             }
         }
@@ -139,7 +143,7 @@ function updateGraph(filter, project_id, makestable)
         {
             url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'
         },
-            'MATCH (n) WHERE n.tag =~ ".*'+ project_id +'.*" ' + filter + 'OPTIONAL MATCH (n)-[r]->(m) RETURN n,r ORDER BY n.distance, n.queue',
+            'MATCH (n) WHERE not(n.tag =~ ".*#SEED.*") AND n.tag =~ ".*'+ project_id +'.*" ' + filter + 'OPTIONAL MATCH (n)-[r]->(m) RETURN n,r ORDER BY n.distance, n.queue',
             {
                 container: 'graph-container',
                 type: 'canvas',
@@ -153,7 +157,6 @@ function updateGraph(filter, project_id, makestable)
                     }
             },
         function (s) {
-            // Initialize the dragNodes plugin:
             var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
 
             if(makestable){
@@ -162,16 +165,12 @@ function updateGraph(filter, project_id, makestable)
                 window.setTimeout(function() {s.killForceAtlas2()}, 2000);
             }
             dragListener.bind('startdrag', function (event) {
-                console.log(event);
             });
             dragListener.bind('drag', function (event) {
-                console.log(event);
             });
             dragListener.bind('drop', function (event) {
-                console.log(event);
             });
             dragListener.bind('dragend', function (event) {
-                console.log(event);
             });
             s.bind('overNode clickNode', function (e) {
                 e.data.node.size = e.data.node.maxNodeSize;
@@ -184,13 +183,12 @@ function updateGraph(filter, project_id, makestable)
         }
     );
 }
-// check for filter for other
 function updateFilters(project_id)
 {
     htmlString = '<input class="form-control" id="filterform" style="padding: 10px;margin-top: -6px;border: 0;border-radius: 0;background: #f1f1f1;" placeholder="Search..." type="text">';
-    //alert(document.getElementById('filterMenu').innerHTML);
     var actionList = [];
     var enumList = ["Unknown"];
+    var cloudList = [];
 
     sigma.neo4j.getNodes(
         { url: 'http://localhost:7474', user:'neo4j', password:'Neo4j' },
@@ -198,14 +196,10 @@ function updateFilters(project_id)
         function(result){
             result.results[0].data.forEach(function (data){
                 data.graph.nodes.forEach(function (node){
-                    console.log(node.properties.tag.toLowerCase());
                     if (node.properties.tag.toLowerCase().includes("seed")){
                         var seedactions = node.properties.action.split("$");
-                        console.log(seedactions);
-                        console.log(seedactions.length);
                         for (i=0;i<seedactions.length;i++){
                             if (seedactions[i].includes("#")){
-                               console.log("SEED " + seedactions[i]);
                                actionList.push(seedactions[i].split("#")[1].split('@')[0]);
                             }
                         }
@@ -213,24 +207,31 @@ function updateFilters(project_id)
                     else{
                        if (node.properties.enum.includes("#")){
                             enumList.push(node.properties.enum.split("#")[0]);
-                            console.log("ENUM " + node.properties.enum);
                        }
+                       if (node.properties.cloud.length > 0){
+                            cloudList.push(node.properties.cloud);
+                       }
+
                     }
                 });
             });
         actionList =  [...new Set(actionList)];
         enumList =  [...new Set(enumList)];
+        cloudList = [...new Set(cloudList)];
         htmlString += '<li class="dropdown-header"><b>Filter by activities</b></li>';
         actionList.forEach(action => {
-            console.log(action);
             htmlString += '<li><a href="#" onclick="return applyFilter(this,'+ "'" + project_id + "'" +');">'+action +'</a></li>';
         });
         htmlString += '<li role="presentation" class="divider"></li>';
         htmlString += '<li class="dropdown-header"><b>Filter by properties</b></li>';
         enumList.forEach(enumString => {
-            console.log(enumString);
             htmlString += '<li><a href="#" onclick="return applyFilter(this,'+ "'" + project_id + "'" +');">'+enumString+'</a></li>';
+       });
+       htmlString += '<li role="presentation" class="divider"></li>';
+       htmlString += '<li class="dropdown-header"><b>Filter by Cloud properties</b></li>';
+       cloudList.forEach(cloudString => {
+            htmlString += '<li><a href="#" onclick="return applyFilter(this,'+ "'" + project_id + "'" +');">'+cloudString+'</a></li>';
        });
        document.getElementById('filterMenu').innerHTML = htmlString;
     });
-}//alert(document.getElementById('filterMenu').innerHTML);
+}

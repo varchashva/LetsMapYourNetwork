@@ -8,6 +8,9 @@ import nmap
 from celery import shared_task
 import  datetime
 import platform
+import boto
+import boto.vpc
+import boto.ec2
 
 @shared_task
 def roam(project):
@@ -20,12 +23,12 @@ def roam(project):
     print "Gateway: " + gateway
     subnet = localinfo.split("$")[1] # will assume same subnet for all LAN IPs
     print "Subnet: " + subnet
-    gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN","")
+    gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN","",True)
     addaction(project,"ROAM",ips,gatewaynewnode)
     live_ip_nodes = networkscan(ips)
 
     for ip in live_ip_nodes:
-        node = makeanode(ip,subnet,project,2,"SCAN","")  # need to change the subnet ICMP Address Mask Ping (-PM)
+        node = makeanode(ip,subnet,project,2,"SCAN","",True)
         gatewaynewnode.connected.connect(node)
         addaction(project, "ROAM", ips, node)
     return {"Status":True}
@@ -43,7 +46,7 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
     localinfo = getlocalinfo(project)
     localip = localinfo.split("$")[0]
     subnet = localinfo.split("$")[1]
-    previousnode = makeanode(localip,subnet,project,0,"SEED","")
+    previousnode = makeanode(localip,subnet,project,0,"SEED","",True)
     if doaddaction:
         addaction(project,"GOTO",hostname,previousnode)
 
@@ -73,7 +76,7 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
             currenthost = currentaddr
             nodes += "{ id : " + str(ttl + 1) + ", group : 'device', label : '" + currenthost + "'},"
             edges += "{ from: " + str(ttl) + ", to: " + str(ttl + 1) + " },"
-            newnode = makeanode(currenthost,subnet,project,ttl,"TRACEROUTE","")
+            newnode = makeanode(currenthost,subnet,project,ttl,"TRACEROUTE","",True)
 
             previousnode.connected.connect(newnode)
             previousnode = newnode
@@ -84,11 +87,15 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
             break
     return {"Status":True}
 
-def makeanode(ip,subnet,project,distance,origin,enum):
+def makeanode(ip,subnet,project,distance,origin,enum,doenum):
     try:
         checknode = Machine.nodes.get(ip=ip,tag__startswith=project)
         print "Node exist: " + checknode.ip
-        nmapenumeration(checknode)
+        if doenum:
+            nmapenumeration(checknode)
+        else:
+            checknode.enum = enum
+            checknode.save()
     except Machine.DoesNotExist as ex:
         print "Exception: " + str(ex)
         try:
@@ -113,15 +120,25 @@ def makeanode(ip,subnet,project,distance,origin,enum):
             except Exception as ex:
                 print "Exception: " + str(ex)
 
-        newnode = Machine(ip=ip, hostname=hostname, subnet=subnet,tag=tag, distance=distance,queue=count,action="",enum=enum)
+        cloud = ""
+        if origin == "AWS":
+            print enum
+            cloud = enum.split("$")[1]
+            enum = enum.split("$")[0]
+
+        newnode = Machine(ip=ip, hostname=hostname, subnet=subnet,tag=tag, distance=distance,queue=count,action="",enum=enum,cloud=cloud)
         newnode.save()
         print "New Node: " + newnode.ip
-        nmapenumeration(newnode)
+        if doenum:
+            nmapenumeration(newnode)
+        else:
+            newnode.enum = enum
+            newnode.save()
         return newnode
 
     return checknode
 
-@shared_task#(bind=True,track_started=True) - check  this part
+@shared_task
 def scan(scanrange,project_id,doaddaction):
     localinfo = getlocalinfo(project_id)
     inet_addrs = netifaces.ifaddresses(
@@ -132,8 +149,8 @@ def scan(scanrange,project_id,doaddaction):
 
     gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
     subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
-    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "SCAN", "")
-    localnode = makeanode(localinfo.split("$")[0],localinfo.split("$")[1],project_id,0,"SEED","")
+    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "SCAN", "",True)
+    localnode = makeanode(localinfo.split("$")[0],localinfo.split("$")[1],project_id,0,"SEED","",True)
     localnode.connected.connect(gatewaynewnode)
 
     if doaddaction:
@@ -146,7 +163,7 @@ def scan(scanrange,project_id,doaddaction):
             for ip in scanresult:
                 if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
                     print "In local range: " + ip
-                    node = makeanode(ip, subnet, project_id, 2, "SCAN", "")
+                    node = makeanode(ip, subnet, project_id, 2, "SCAN", "",True)
                     gatewaynewnode.connected.connect(node)
                     if doaddaction:
                         addaction(project_id,"SCAN",scanrange,node)
@@ -200,8 +217,6 @@ def nmapenumeration(node):
                             node.enum = "VoIP#" + osmatch['name'] + "#" + osmatch['osclass'][0]['type']
                         elif "router" in str(osmatch['name'] + osmatch['osclass'][0]['type']).lower():
                             node.enum = "Router#" + osmatch['name'] + "#" + osmatch['osclass'][0]['type']
-                        # else:
-                        #     node.enum = "Other#" + osmatch['name'] + "#" + osmatch['osclass'][0]['type']
                         node.save()
                         print "Updated for " + node.ip + " with " + node.enum
                         osidentified = True
@@ -233,8 +248,6 @@ def nmapenumeration(node):
         print "Not a private IP, skipping it " + node.ip
         return {"Status":False}
 
-
-
 def getlocalinfo(project):
     localip = ""
     subnet = ""
@@ -253,9 +266,17 @@ def getlocalinfo(project):
                 break #picking only first valid IP, as of now
         except Exception as ex:
             print ex
-    makeanode(localip, subnet, project, 0, "SEED","")
+    makeanode(localip, subnet, project, 0, "SEED","",True)
     return localip + "$" + subnet + "$" + localinterface
 
+def listCloud(project_id):
+    cloudList = []
+    for node in Machine.nodes.filter(tag__startswith=project_id):
+        if node.cloud != "":
+            cloudList.append(str(node.cloud).split("#")[0])
+
+    cloudList = list(set(cloudList)).sort()
+    return cloudList
 
 def listActions(project_id):
     actionList = []
@@ -289,7 +310,7 @@ def listEnums(project_id):
         if "#" in node.enum:
             enumList.append(str(node.enum).split("#")[0])
 
-    enumList = list(set(enumList))
+    enumList = list(set(enumList)).sort()
     return enumList
 
 def addaction(project_id,action, param, node):
@@ -312,8 +333,8 @@ def cmdbprocess(scanrange,beintrusive,filename,project_id):
     gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
     print "Gateway: " + gateway
 
-    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "CMDB", "")
-    localnode = makeanode(localip, subnet, project_id, 0, "CMDB", "")
+    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "CMDB", "",True)
+    localnode = makeanode(localip, subnet, project_id, 0, "CMDB", "",True)
     gatewaynewnode.connected.connect(localnode)
     addaction(project_id, "CMDB", filename, gatewaynewnode)
     addaction(project_id, "CMDB", filename, localnode)
@@ -329,7 +350,7 @@ def cmdbprocess(scanrange,beintrusive,filename,project_id):
                 local_ip_range = localip + "/" + str(netaddr.IPAddress(subnet).netmask_bits())
                 if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
                     print "in local range"
-                    node = makeanode(ip, subnet, project_id, 2,"CMDB","")
+                    node = makeanode(ip, subnet, project_id, 2,"CMDB","",True)
                     gatewaynewnode.connected.connect(node)
                     addaction(project_id,"CMDB",filename,node)
                 else:
@@ -362,7 +383,7 @@ def cmdbanalysis(localrange,cmdb_file_ips,project_id,filename):
     print "processing " + str(len(localip)) + "local interfaces " + interface
     gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
     print "Gateway: " + gateway
-    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "CMDB", "")
+    gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "CMDB", "",True)
     addaction(project_id, "CMDB", localrange, gatewaynewnode)
     scanresult = networkscan(localrange)
     print str(scanresult)
@@ -372,7 +393,113 @@ def cmdbanalysis(localrange,cmdb_file_ips,project_id,filename):
             if netaddr.IPAddress(ip) in netaddr.IPNetwork(cmdb_file_ip):
                 origin = "CMDB"
                 break
-        node = makeanode(ip, subnet, project_id, 2, origin, "")
+        node = makeanode(ip, subnet, project_id, 2, origin, "",True)
         addaction(project_id, "CMDB", localrange, node)
         addaction(project_id, "CMDB", filename, node)
         gatewaynewnode.connected.connect(node)
+
+@shared_task
+def aws_processing(access_key,access_id,region,project_id):
+    try:
+        vpcconn = boto.vpc.connect_to_region(region,aws_access_key_id=access_id,aws_secret_access_key=access_key)
+    except Exception as ex:
+        print str(ex)
+    vpcs = vpcconn.get_all_vpcs()
+    for vpc in vpcs:
+        print "Processing instances..."
+        subnets = vpcconn.get_all_subnets(filters={'vpc-id': vpc.id})
+        for subnet in subnets:
+            ec2conn = boto.ec2.connect_to_region(region)
+            instances = ec2conn.get_only_instances(filters={'vpc-id': vpc.id, 'subnet-id': subnet.id})
+            enum = "InlineRouter#" + subnet.id + "$" + vpc.id
+            routernode = makeanode(str(ipaddress.IPv4Network(subnet.cidr_block)[1]),str(ipaddress.IPv4Network(subnet.cidr_block).netmask), project_id, 2, "AWS", enum,False)
+            routernode.save()
+            addaction(project_id,"AWS",region,routernode)
+            if len(instances) <= 0:
+                routernode.tag = str(routernode.tag).replace("#UP","#DOWN")
+                routernode.distance = -1
+                routernode.save()
+            for instance in instances:
+                try:
+                    if "windows" in str(instance.platform).lower():
+                        enum = str(instance.platform).capitalize() + "#" + subnet.id + "#" + instance.state + "#" + instance.placement + "$" + vpc.id
+                    else:
+                        enum = "Linux#" + subnet.id + "#" + instance.state + "#" + instance.placement + "$" + vpc.id
+                    instancenode = makeanode(instance.private_ip_address,str(ipaddress.IPv4Network(subnet.cidr_block).netmask),project_id,1,"AWS",enum,False)
+                    instancenode.connected.connect(routernode)
+                    instancenode.save()
+                    addaction(project_id, "AWS", region, instancenode)
+                    if "ec2" in instance.public_dns_name:
+                        print "Making it PUBLIC " + instance.public_dns_name
+                        instancenode.ip = parsepublicip(instance.public_dns_name)
+                        instancenode.hostname = instance.public_dns_name
+                        instancenode.tag = str(instancenode.tag).replace("INTERNAL","EXTERNAL")
+                        instancenode.save()
+
+                except Exception as ex:
+                    print str(ex)
+
+        print "Processing routes..."
+        route_tables = vpcconn.get_all_route_tables(filters={'vpc-id': vpc.id})
+        for route_table in route_tables:
+            for association in route_table.associations:
+                if not (association.subnet_id is None):
+                    subnet = vpcconn.get_all_subnets(filters={'vpc-id': vpc.id,"subnet-id":association.subnet_id})
+                    enum = "InlineRouter#" + "#" + subnet[0].id + "$" + vpc.id
+                    subnetnode = makeanode(str(ipaddress.IPv4Network(subnet[0].cidr_block)[1]),str(ipaddress.IPv4Network(subnet[0].cidr_block).netmask), project_id, 2, "AWS",enum, False)
+                    addaction(project_id, "AWS", region, subnetnode)
+                    for route in route_table.routes:
+                        if str(route.state).startswith("active"):
+                            if not (route.destination_cidr_block is None):
+                                if not (route.gateway_id is None or route.gateway_id in "local"):
+                                    if str(route.gateway_id).startswith("igw"):
+                                        enum = "InternetGateway#" + str(route.gateway_id) + "$" + vpc.id
+                                        igw = vpcconn.get_all_internet_gateways(internet_gateway_ids=route.gateway_id)
+                                        igwnode = makeanode("1.1.1.1","255.255.255.255",project_id, 3, "AWS", enum, False) # need to check for node which don't have IP
+                                        subnetnode.connected.connect(igwnode)
+                                        addaction(project_id, "AWS", region, igwnode)
+                                        igwnode.save()
+                                        subnetnode.save()
+                                    elif str(route.gateway_id).startswith("vgw"):
+                                        enum = "VPNGateway#" + str(route.gateway_id) + "$" + vpc.id
+                                        vpngw = vpcconn.get_all_vpn_gateways(vpn_gateway_ids=route.gateway_id)
+                                        vpngwnode = makeanode("1.1.1.1", "255.255.255.255", project_id, 3, "AWS", enum,
+                                                            False)  # need to check for node which don't have IP
+                                        subnetnode.connected.connect(vpngwnode)
+                                        addaction(project_id, "AWS", region, vpngwnode)
+                                        vpngwnode.save()
+                                        subnetnode.save()
+                                elif not (route.vpc_peering_connection_id is None):
+                                    peer = vpcconn.get_all_vpc_peering_connections(vpc_peering_connection_ids=[route.vpc_peering_connection_id])
+                                    if str(peer[0].accepter_vpc_info.vpc_id) in str(vpc.id):
+                                        enum = "VPCPeer#" + peer[0].requester_vpc_info.vpc_id + "$" + vpc.id
+                                        peernode = makeanode(str(ipaddress.IPv4Network(peer[0].requester_vpc_info.cidr_block)[1]),str(ipaddress.IPv4Network(peer[0].requester_vpc_info.cidr_block).netmask),project_id, 4, "AWS", enum, False)
+                                    else:
+                                        enum = "VPCPeer#" + peer[0].accepter_vpc_info.vpc_id + "$" + vpc.id
+                                        peernode = makeanode(
+                                            str(ipaddress.IPv4Network(peer[0].accepter_vpc_info.cidr_block)[1]),
+                                            str(ipaddress.IPv4Network(peer[0].accepter_vpc_info.cidr_block).netmask),
+                                            project_id, 4, "AWS", enum, False)
+                                    peernode.save()
+                                    addaction(project_id, "AWS", region, peernode)
+                                    subnetnode.connected.connect(peernode)
+                                    subnetnode.save()
+                                elif not (route.interface_id is None):
+                                    instance = ec2conn.get_only_instances(filters={'instance-id': route.instance_id})
+                                    if "windows" in str(instance[0].platform).lower():
+                                        enum = str(instance[0].platform).capitalize() + "#" + subnet[0].id + "#" + instance[0].state + "#" + instance[0].placement + "$" + vpc.id
+                                    else:
+                                        enum = "Linux#" + "#" + subnet[0].id + "#" + instance[0].state + "#" + instance[0].placement + "$" + vpc.id
+                                    instancenode = makeanode(instance[0].private_ip_address,str(ipaddress.IPv4Network(subnet[0].cidr_block).netmask), project_id,1, "AWS", enum, False)
+                                    subnetnode.connected.connect(instancenode)
+                                    addaction(project_id, "AWS", region, instancenode)
+                                    subnetnode.save()
+                                    instancenode.save()
+                                else:
+                                    print "Unprocessed route " + str(route.gateway_id)
+                        else:
+                            print "Route is not processed for " + str(route.destination_cidr_block) + " (" + str(route.state) + ")"
+
+def parsepublicip(hostname):
+    splits = hostname.split("-")
+    return splits[1] + "." + splits[2] + "." + splits[3] + "." + splits[4].split(".")[0]

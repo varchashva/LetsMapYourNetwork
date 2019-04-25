@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import socket
-import netifaces
-import ipaddress
-import netaddr
 from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm,AWSForm,AzureForm
 from django.shortcuts import render,redirect,render_to_response
-from .models import Machine
-import os
-import nmap
-import datetime
 
 from tasks import *
 from celery.result import AsyncResult
@@ -19,20 +11,10 @@ from django.http import HttpResponse
 from django.template import RequestContext
 
 def handler404(request):
-    response = render_to_response('statistics.html', {},
-                                  context_instance=RequestContext(request))
+    response = render_to_response('statistics.html', {},context_instance=RequestContext(request))
     return response
 
-
 def statistics(request):
-    # projectList = listActions(project_id)
-    # enumList = listEnums(project_id)
-    # historyList = listHistory(project_id)
-    #
-    # context = {"actionList": actionList, "historyList": historyList, "enumList": enumList, "projectList": projectList,
-    #            "project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
-    #            "projectform": projectform, "cmdbform": cmdbform}
-
     all_hosts = Machine.nodes.filter(tag__ne="");
     host_count = 0;
 
@@ -61,7 +43,7 @@ def statistics(request):
     return render(request, 'statistics.html', context)
 
 def index(request):
-    return redirect("/core/default/action")
+    return redirect("/core/statistics")
 
 
 def clear(project_id):
@@ -164,13 +146,9 @@ def action(request, project_id):
     projectList = ["default"]
     for node in Machine.nodes:
         projectList.append(str(node.tag).split("#")[0])
-
     projectList = list(set(projectList))
     projectList.sort()
-
     action = "show"
-
-
     if request.method == "POST":
         print "Info: Request is POST"
         print "Debug: "+ str(request.POST)
@@ -198,10 +176,18 @@ def action(request, project_id):
                 action="select"
                 project_id = str(projectform.cleaned_data["project"])
                 print "Project: " + project_id
+        elif "access_key" in request.POST and "access_id" in request.POST:
+                awsform = AWSForm(request.POST)
+                if awsform.is_valid():
+                    action = "aws"
+                    access_key = str(awsform.cleaned_data["access_key"])
+                    access_id = str(awsform.cleaned_data["access_id"])
+                    region = str(awsform.cleaned_data["regions"])
         elif request.FILES['cmdbfilepath']:
             print "CMDB file: " + str(request.FILES['cmdbfilepath'].name)
             action = "cmdb"
             print "Project: " + project_id
+
     else:
         action=request.GET.get("action","show")
     print "Action is : " + action
@@ -211,9 +197,9 @@ def action(request, project_id):
         print "Local Info: " + str(output)
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"enumList":enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        cloudList = listCloud(project_id)
+        context = {"cloudList":cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"enumList":enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return redirect("/core/" + str(project_id) + "/action")
-        # return render(request, 'project.html', context)
     elif "goto" in action:
         output = traceroute.delay(goto_target,33434,30,project_id,True)
         print "Traceroute result: " + str(output)
@@ -226,8 +212,8 @@ def action(request, project_id):
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
-
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "roam" in action:
         myneighbours = roam.delay(project_id)
@@ -245,10 +231,9 @@ def action(request, project_id):
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
-
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return redirect("/core/" + str(project_id) + "/action")
-        #return render(request, 'project.html', context)
     elif "clear" in action:
         clear(project_id)
         print "All clear..."
@@ -264,16 +249,16 @@ def action(request, project_id):
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
-
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                     "projectform": projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "select" in action:
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
-
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                    "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
     elif "create" in action:
@@ -282,13 +267,28 @@ def action(request, project_id):
         print "Reinitialized DB"
         actionList = listActions(project_id)
         historyList = listHistory(project_id)
-
         enumList = listEnums(project_id)
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform": newprojectform,
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform": newprojectform,
                    "gotoform": gotoform,
                    "scanform": scanform,
                    "projectform": projectform,"cmdbform":cmdbform}
         return redirect("/core/" + str(project_id) + "/action")
+    elif "aws" in action:
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+        output = aws_processing.delay(access_key,access_id,region,project_id)
+        addaction(project_id, "AWS", region+"@"+str(output)+ "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), seednode)
+
+        actionList = listActions(project_id)
+        historyList = listHistory(project_id)
+        enumList = listEnums(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform": awsform, "azureform": azureform, "actionList": actionList, "historyList": historyList,
+                   "enumList": enumList, "projectList": projectList, "project_id": project_id,
+                   "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+                   "projectform": projectform, "cmdbform": cmdbform}
+        return render(request, 'project.html', context)
     elif "cmdb" in action:
         scanrange = []
         for line in request.FILES['cmdbfilepath']:
@@ -305,8 +305,8 @@ def action(request, project_id):
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
-
-        context = {"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
 
 

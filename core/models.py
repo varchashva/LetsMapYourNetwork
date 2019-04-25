@@ -16,6 +16,7 @@ class Machine(StructuredNode):
     queue = IntegerProperty()
     action = StringProperty()
     enum = StringProperty()
+    cloud = StringProperty()
     connected = Relationship('Machine','IS_CONNECTED')
     def __str__(self):
         return self.hostname

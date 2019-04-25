@@ -108,11 +108,17 @@
                         {% for enum in enumList %}
                             <li><a href="#" onclick="return applyFilter(this,'{{project_id}}');">{{enum}}</a></li>
                         {% endfor %}
+
+                        <li role="presentation" class="divider"></li>
+                        <li class="dropdown-header"><b>Filter by Cloud Properties</b></li>
+                        {% for cloud in cloudList %}
+                            <li><a href="#" onclick="return applyFilter(this,'{{project_id}}');">{{cloud}}</a></li>
+                        {% endfor %}
                     </ul>
                 </span>
                 <ul class="nav navbar-nav">
                     <ul class="nav navbar-nav">
-                        <li><a href="/core/{{project_id}}/refresh"><i class="glyphicon glyphicon-refresh" style="line-height:1.3"></i></a>
+                        <li><a href="/core/{{project_id}}/refresh"><i class="glyphicon glyphicon-refresh" style="line-height:1.3" title="Monitoring - Refresh state of network"></i></a>
                         </li>
                     </ul>
                     <ul class="nav navbar-nav">
@@ -128,6 +134,31 @@
 <aside class="main-sidebar">
     <div class="sidebar" id="scrollspy">
         <ul class="nav sidebar-menu">
+            <li class="treeview">
+                <a href="javascript::;">
+                    <i class="glyphicon glyphicon-folder-close" style="color: rgb(184, 199, 206);"></i>
+                    Project Management
+                </a>
+                <ul class="nav treeview-menu">
+                    <li class="treeview">
+                        <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i>Create Project</a>
+                        <ul class="nav treeview-menu">
+                            <div class="input-group">
+                                <form action="/core/{{project_id}}/action" method="POST">
+                                    <div class="input-group-prepend">
+                                       <span class="text" style="background:black"> {{newprojectform}}</span>
+                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
+                                            <i class="fa fa-plus" style="color: rgb(184, 199, 206);"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </ul>
+                    </li>
+                    <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Delete Project</a></li>
+                </ul>
+
+            </li>
             <li class="treeview">
                 <a href="javascript::;"><i class="glyphicon glyphicon-upload" style="color: rgb(184, 199, 206);"></i>Map CMDB</a>
                 <ul class="nav treeview-menu">
@@ -196,8 +227,9 @@
                             <div class="input-group">
                                 <form id="awsform" class="form-inline" action="/core/{{project_id}}/action" method="POST">
                                     <div class="input-group-prepend">
-                                        {{awsform.access_key}}<br>
-                                        {{awsform.access_id}}
+                                        {{awsform.access_key}}<i class="fa fa-key" style="color: rgb(184, 199, 206);padding-left:6px;"></i><br>
+                                        {{awsform.access_id}}<i class="fa fa-user" style="color: rgb(184, 199, 206);padding-left:6px;"></i><br>
+                                        {{awsform.regions}}
                                         <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
                                             <i class="fa fa-chevron-right" style="color: rgb(184, 199, 206);"></i>
                                         </button>
@@ -226,31 +258,7 @@
                 </ul>
             </li>
 
-            <li class="treeview">
-                <a href="javascript::;">
-                    <i class="glyphicon glyphicon-folder-close" style="color: rgb(184, 199, 206);"></i>
-                    Project Management
-                </a>
-                <ul class="nav treeview-menu">
-                    <li class="treeview">
-                        <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i>Create Project</a>
-                        <ul class="nav treeview-menu">
-                            <div class="input-group">
-                                <form action="/core/{{project_id}}/action" method="POST">
-                                    <div class="input-group-prepend">
-                                       <span class="text" style="background:black"> {{newprojectform}}</span>
-                                        <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
-                                            <i class="fa fa-plus" style="color: rgb(184, 199, 206);"></i>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </ul>
-                    </li>
-                    <li><a href="/core/{{project_id}}/action?action=clear"><i class="glyphicon glyphicon-trash"></i>Delete Project</a></li>
-                </ul>
 
-            </li>
 
             <li class="treeview" id="historybar">
                 <a href="javascript::;" id="historylink"><i class="glyphicon glyphicon-hourglass" style="color: rgb(184, 199, 206);"></i>History</a>
@@ -263,35 +271,6 @@
             </li>
             <div class="progress">
                 <b><div class="progress-bar progress-bar-striped active" style="width:0%;" id= "historyprogressbar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div></b>
-            </div>
-
-            <br><br><br>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Node Color Legend</h3>
-                </div>
-                <table class="table table-striped" style="font-size:12px;background-color:#F2F2F2">
-                    <tr>
-                        <td width="20px" bgcolor="#3333ff"></td>
-                        <td>This is your SEED host</td>
-                    </tr>
-                    <tr>
-                        <td width="20px" bgcolor="#009900"></td>
-                        <td>Host is live & present in CMDB</td>
-                    </tr>
-                    <tr>
-                        <td width="20px" bgcolor="#e60000"></td>
-                        <td>Host is live & not present in CMDB</td>
-                    </tr>
-                    <tr>
-                        <td width="20px" bgcolor="#20A8D8"></td>
-                        <td>Host is identified live using SCAN</td>
-                    </tr>
-                    <tr>
-                        <td width="20px" bgcolor="#3971ac"></td>
-                        <td>This is EXTERNAL host</td>
-                    </tr>
-                </table>
             </div>
         </ul>
     </div>
