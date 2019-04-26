@@ -302,6 +302,10 @@ def action(request, project_id):
         addaction(project_id, "CMDB",str(request.FILES['cmdbfilepath']) + "@" + str(output) + "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),seednode)
         return redirect("/core/" + str(project_id) + "/action")
     else:
+        if "default" in str(project_id):
+            output = getlocalinfo(project_id)
+            print "Project created: " + output
+            print "Reinitialized DB"
         actionList = listActions(project_id)
         enumList = listEnums(project_id)
         historyList = listHistory(project_id)
