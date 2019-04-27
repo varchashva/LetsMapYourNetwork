@@ -8,7 +8,7 @@
 5. [Key Features](#key-features)
 6. [Installation Guidelines](#installation-guidelines)
 7. [HOW TO USE IT](#how-to-use-it) 
-8. [Understand Node](#understand-node.md)
+8. [Understand Node](#understand-node)
 9. [Contributer](#contributer)
 10. [LMYN In Action](#lmyn-in-action)
 
