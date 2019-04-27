@@ -6,7 +6,7 @@
 3. [WHERE TO USE IT](#where-to-use-it)
 4. [Presentations](#presentations)
 5. [Key Features](#key-features)
-6. [Installation Guidelines](installation-guidelines)
+6. [Installation Guidelines](#installation-guidelines)
 7. [HOW TO USE IT](#how-to-use-it) 
 8. [Contributer](#contributer)
 9. [LMYN In Action](#lmyn-in-action)
