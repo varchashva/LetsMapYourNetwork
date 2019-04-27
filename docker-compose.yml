@@ -13,7 +13,7 @@ services:
      - "7473:7473"
     network_mode: host
   lmyn:
-    image: "pramodrana/letsmapyournetwork:1.0"
+    image: "pramodrana/letsmapyournetwork:2.0"
     restart: always
     ports:
      - "9999:9999"
