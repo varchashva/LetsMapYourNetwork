@@ -44,7 +44,7 @@ Below technologies have been used in the tool:
 
 ### [Key Features](KeyFeatures.md)
 
-### [Installation Guidelines](InstallationGuildelines.md)
+### [Installation Guidelines](InstallationGuidelines.md)
 
 ### [HOW TO USE IT](HowTo.md) 
 
