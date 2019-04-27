@@ -1,6 +1,17 @@
 ## LET’S MAP [YOUR] NETWORK ##
 
-#### WHAT IT IS #### 
+### Table of Contents
+1. [WHAT IT IS](#what-it-is)
+2. [WHY IT IS](#why-it-is)
+3. [WHERE TO USE IT](#where-to-use-it)
+4. [Presentations](#presentations)
+5. [Key Features](#key-features)
+6. [Installation Guidelines](installation-guidelines)
+7. [HOW TO USE IT](#how-to-use-it) 
+8. [Contributer](#contributer)
+9. [LMYN In Action](#lmyn-in-action)
+
+### WHAT IT IS ###
 
 It is utmost important for any security engineer to understand their network first before securing it and it becomes a daunting task to have a ‘true’ understanding of a widespread network. In a mid to large level organisation’s network having a network architecture diagram doesn’t provide the complete understanding and manual verification is a nightmare. Hence in order to secure entire network it is important to have a complete picture of all the systems which are connected to your network, irrespective of their type, function, techology etc.
 
@@ -18,26 +29,24 @@ Below technologies have been used in the tool:
 3. Sigma JS
 4. Celery and RabbitMQ
 
-#### WHY IT IS #### 
+### WHY IT IS ###
  - Visualizing infrastructure network in form of graph makes it more ‘visible’ and it becomes significantly easy to perform the analysis and identify the key areas of concern for a security engineer and network administrator
  - Also, Let’s Map Your Network formulates the graph entirely based-on either network actions performed from ‘seed’ system which will be part of the actual network or quering the APIs. Hence there is no chance of manual-error in the mapping of network
  
-#### WHERE TO USE IT #### 
+### WHERE TO USE IT ###
 1. Network Architecture 'Validation'
 2. Troubleshooting for network administrator
 3. Internal Network vulnerability assessment and penetration testing
 
-### Documentation ###
+### Presentations ###
  - [BlackHatEurope2018 presentation slide](docs/LetsMapYourNetwork_BlackHat.pdf)
  - [Demo Videos](https://www.youtube.com/channel/UC77eNGlIzjGL0fgx3i6Hcyw)
 
 ### [Key Features](KeyFeatures.md)
 
-### [INSTALLATION GUIDELINES](InstallationGuildelines)
+### [Installation Guidelines](InstallationGuildelines)
 
 ### [HOW TO USE IT](HowTo.md) 
-
-Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
 
 ### Contributer ###
 [Jyoti Raval](https://www.linkedin.com/in/jyoti-raval-61565157/): (Brutal!) QA
@@ -52,3 +61,5 @@ Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
 
 #### Cloud network
 ![LMYN IN ACTION](images/LMYN_3.gif)
+
+Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
