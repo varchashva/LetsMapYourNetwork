@@ -1,14 +1,14 @@
-## LET’S MAP [YOUR] NETWORK ##
+## LET’S MAP [YOUR] NETWORK (v2.0) ##
 
 ### Table of Contents
 1. [WHAT IT IS](#what-it-is)
 2. [WHY IT IS](#why-it-is)
 3. [WHERE TO USE IT](#where-to-use-it)
 4. [Presentations](#presentations)
-5. [Key Features](#key-features)
-6. [Installation Guidelines](#installation-guidelines)
-7. [HOW TO USE IT](#how-to-use-it) 
-8. [Understand Node](#understand-node)
+5. [Key Features](#KeyFeatures.md)
+6. [Installation Guidelines](#InstallationGuidelines.md)
+7. [HOW TO USE IT](#HowToUse.md) 
+8. [Understand Node](#UnderstandNode.md)
 9. [Contributer](#contributer)
 10. [LMYN In Action](#lmyn-in-action)
 
@@ -43,12 +43,6 @@ Below technologies have been used in the tool:
  - [BlackHatEurope2018 presentation slide](docs/LetsMapYourNetwork_BlackHat.pdf)
  - [Demo Videos](https://www.youtube.com/channel/UC77eNGlIzjGL0fgx3i6Hcyw)
 
-### [Key Features](KeyFeatures.md)
-
-### [Installation Guidelines](InstallationGuidelines.md)
-
-### [HOW TO USE IT](HowTo.md) 
-### [Understand Node](UnderstandNode.md)
 
 ### Contributer ###
 [Jyoti Raval](https://www.linkedin.com/in/jyoti-raval-61565157/): (Brutal!) QA
