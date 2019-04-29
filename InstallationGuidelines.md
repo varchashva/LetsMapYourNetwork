@@ -33,8 +33,12 @@
    - Browse to Neo4j web console (http://localhost:7474) to change the default password from neo4j to Neo4j
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation) for any troubleshooting, if required 
 7. Run command sudo pip install --trusted-host pypi.python.org -r $LMYN/LetsMapYourNetwork/requirements.txt
-8. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver 0.0.0.0:9999 --insecure
-9. Open http://localhost:9999/core in browser and explore the tool
+8. Run RabbitMQ Server service as below
+   - sudo rabbitmq-server start
+9. Run Celery as below from $LMYN_HOME directory
+   - celery -A LetsMapYourNetwork -l warning
+10. Run command sudo python $LMYN_HOME/LetsMapYourNetwork/manage.py runserver 0.0.0.0:9999 --insecure
+11. Open http://localhost:9999/core in browser and explore the tool
 
 #### For Windows User #### 
 
@@ -61,6 +65,10 @@
    - Please refer [Neo4j Installation Guide](https://neo4j.com/docs/operations-manual/current/installation/) for any troubleshooting, if required 
 8. Open command prompt with Administrative privilegs and browse to Python home directory for e.g. cd C:\python
    - Run command python -m pip install --trusted-host pypi.python.org -r $LMYN/LetsMapYourNetwork/requirements.txt
-9. Use same command prompt with Administrative privileges and from Python home directory
-   - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver 0.0.0.0:9999 --insecure
-10. Open http://localhost:9999/core in browser and explore the tool
+9. Run RabbitMQ Server service as below
+   - From the Windows Start menu, select All Programs > RabbitMQ Server > Start Service to start the RabbitMQ server
+10. Run Celery as below from $LMYN_HOME directory
+    - celery -A LetsMapYourNetwork -l warning
+10. Use same command prompt with Administrative privileges and from Python home directory
+    - Run command python $LMYN_HOME\LetsMapYourNetwork\manage.py runserver 0.0.0.0:9999 --insecure
+11. Open http://localhost:9999/core in browser and explore the tool
