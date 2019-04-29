@@ -46,7 +46,6 @@
         xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
-                // Call the callback if specified:
                 callback(JSON.parse(xhr.responseText));
             }
         };
@@ -76,6 +75,18 @@
             var baseangle = 20;
             var diffangle = 20;
             var maxnode = (360/baseangle -2)/2;
+            var icons = {
+                "windows": "\uf17a",
+                "linux": "\uf17c",
+                "voip": "\uf095",
+                "router": "\uf0ec",
+                "switch": "\uf108",
+                "unknown": "\uf128",
+                "internetgateway": "\uf1eb",
+                "vpngateway": "\uf023",
+                "inlinerouter": "\uf0ec",
+                "vpcpeer": "\uf074",
+                };
 
             // iteration on graph for all node
             data.graph.nodes.forEach(function (node) {
@@ -84,7 +95,19 @@
                 var reachability = node.properties.tag.split("#")[2];
                 var bordercolor = "#80bfff";
                 var nodecolor = '#20A8D8';
-                if (reachability.localeCompare("EXTERNAL") == 0)
+                var state = node.properties.tag.split("#")[3];
+                var nodesize = 15;
+                var icon_color = "#FFF";
+                if (node.properties.enum.includes("InlineRouter") || node.properties.enum.includes("VPCPeer")){
+                    nodesize = 8;
+                    nodecolor = "#e6e6e6";
+                    icon_color = "#000";
+                }
+                else if (state.localeCompare("DOWN") == 0)
+                {
+                    nodecolor = "#a6a6a6";
+                }
+                else if (reachability.localeCompare("EXTERNAL") == 0)
                 {
                     bordercolor = "#b3cce6";
                     nodecolor = "#3971ac"; //light-blue
@@ -98,7 +121,7 @@
                     }
                     else if (origin.localeCompare("CMDB") == 0)
                     {
-                        bordercolor = "#00ff55";//green
+                        bordercolor = "#00ff55"; //green
                         nodecolor = "#009900";
                     }
                     else if (origin.localeCompare("DISCOVERED") == 0)
@@ -111,7 +134,6 @@
                 var radius = 1;
                 var angle = 0;
                 var count = 1;
-//                stretch = stretch + .2 * level;
                 level = 1;
 
                 if (node.properties.queue == 0)
@@ -131,19 +153,29 @@
 
                 }
 
+                var fa_icon_unicode = icons["unknown"];
+                if (node.properties.enum.toString().includes("#")){
+                    fa_icon_unicode = icons[node.properties.enum.toString().split("#")[0].toLowerCase()];
+                }
 
                 var sigmaNode =  {
                     id : node.id,
                     label : "",
                     x : (node.properties.distance - 1) + radius * (Math.cos(angle * Math.PI / 180)) + stretch, //h+r*cos(a)
                     y : radius * Math.sin(angle * Math.PI / 180), //k+r*sin(a), where k = 0
-                    size : 15,
+                    size : nodesize,
                     maxNodeSize: 25,
                     minNodeSize: 15,
-                    color : nodecolor,
                     neo4j_labels : node.labels,
                     neo4j_data : node.properties,
                     borderColor: nodecolor,
+                    color: nodecolor,
+                    icon: {
+                        font: 'FontAwesome',
+                        content: fa_icon_unicode,
+                        color: icon_color,
+                        scale: 1.0
+                    },
                     //borderWidth: 3, //tester demand
                 };
                 if (sigmaNode.id in nodesMap) {
@@ -163,8 +195,9 @@
                     color : '#a6a6a6',
                     neo4j_type : edge.type,
                     neo4j_data : edge.properties,
-                    type: 'tapered',
+                    type: 'tapered', //this can be used to determine the type of connection
                     size: 3,
+
 
                 };
 
@@ -229,14 +262,10 @@
                              };
 
                 graph = sigma.neo4j.cypher_parse(response);
-
                 // Update the instance's graph:
                 if (sig instanceof sigma) {
                     sig.graph.clear();
                     sig.graph.read(graph);
-//                    sig.bind('overNode outNode clickNode doubleClickNode rightClickNode', function(e) {
-//  console.log(e.type, e.data.node.label, e.data.captor);
-//});
 
                     // ...or instantiate sigma if needed:
                 } else if (typeof sig === 'object') {
@@ -284,8 +313,21 @@
         sigma.neo4j.send(neo4j, '/db/data/relationship/types', 'GET', null, callback);
     };
 
+    sigma.neo4j.getNodes = function(neo4j, cypher, callback) {
 
+        // Data that will be send to the server
+       var data = JSON.stringify({
+            "statements": [
+                {
+                    "statement": cypher,
+                    "resultDataContents": ["graph"],
+                    "includeStats": false
+                }
+            ]
+        });
 
+        sigma.neo4j.send(neo4j,'/db/data/transaction/commit' , 'POST', data, callback);
+    };
 }).call(this);
 
     

@@ -7,3 +7,6 @@ scapy
 netifaces
 netaddr
 ipaddress
+celery==4.1.1
+boto==2.49.0
+rabbitmq

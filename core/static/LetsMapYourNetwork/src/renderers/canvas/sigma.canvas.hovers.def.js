@@ -107,7 +107,7 @@
         Math.round(node[prefix + 'y'] + fontSize / 3)
         );
       context.fillText(
-      "Distance: " + node.neo4j_data.distance ,
+      "Enumeration: " + node.neo4j_data.enum.split("#")[0] ,
       Math.round(node[prefix + 'x'] + size + 6),
         Math.round(node[prefix + 'y'] + fontSize / 3 + 20)
         );

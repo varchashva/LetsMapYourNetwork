@@ -1,50 +1,161 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm,AWSForm,AzureForm
+from django.shortcuts import render,redirect,render_to_response
 
-from scapy.all import *
-from platform import system as system_name # Returns the system/OS name
-from os import system as system_call       # Execute a shell command -> Replace with subprocess
-import socket
-import netifaces
-import ipaddress
-import netaddr
-import sys
-
-from .forms import ProjectForm,GoToForm,ScanForm,NewProjectForm,CMDBScanForm
-
-from django import forms
-
-from django.shortcuts import render,redirect
+from tasks import *
+from celery.result import AsyncResult
+import json
 from django.http import HttpResponse
-from .models import Machine
-from django.core.files.storage import FileSystemStorage
-import neomodel
-import os
-import nmap
+from django.template import RequestContext
+
+def handler404(request):
+    response = render_to_response('statistics.html', {},context_instance=RequestContext(request))
+    return response
+
+def statistics(request):
+    all_hosts = Machine.nodes.filter(tag__ne="");
+    host_count = 0;
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+
+    projectList = list(set(projectList))
+    projectList.sort()
+
+    rogue_system_count = 0;
+    down_host_count = 0;
+    project_list = []
+
+    for node in all_hosts:
+        project_list.append(str(node.tag).split("#")[0])
+        host_count += 1;
+        if "discovered" in str(node.tag).lower():
+            rogue_system_count += 1;
+        if "down" in str(node.tag).lower():
+            down_host_count += 1;
+
+    project_count = len(list(set(project_list)))
+
+    context = {"projectList":projectList,"host_count":host_count,"project_count":project_count,"rogue_system_count":rogue_system_count,"down_host_count":down_host_count}
+    return render(request, 'statistics.html', context)
 
 def index(request):
-    return redirect("/core/default/action")
+    return redirect("/core/statistics")
+
+
+def clear(project_id):
+    for allnodes in Machine.nodes.filter(tag__startswith=project_id):
+        allnodes.delete()
+    return "Info: all clear"
+
+
+def refresh(request,project_id):
+    # 1. Save state
+    prevstate = Machine.nodes.filter(tag__startswith=project_id)
+    print "Before refresh:"
+    print len(prevstate)
+    for node in prevstate:
+        print node.ip
+
+    # 2. Identify current state
+    currentstate = []
+    findseed = project_id + "#SEED"
+    node = Machine.nodes.get(tag__startswith=findseed)
+    actions = node.action.split("$")
+    for action in actions:
+        if str(action).startswith("GOTO"):
+            print str(action).split("#")[0] + "@" + str(action).split("#")[1]
+            path = traceroute(str(action).split("#")[1], 33434, 30, project_id)
+            currentstate += path
+            print "Traceroute result: " + str(path)
+        elif str(action).startswith("ROAM"):
+            print str(action).split("#")[0]
+            myneighbours = roam(project_id)
+            currentstate += myneighbours
+            print "My neighbours: " + str(myneighbours)
+        elif str(action).startswith("SCAN"):
+            print str(action).split("#")[0] + "@" + str(action).split("#")[1]
+            scanresult = scan(str(action).split("#")[1], project_id)
+            print "Scan results: " + str(scanresult)
+            currentstate += scanresult
+    print "Current state:"
+    print len(currentstate)
+    for node in currentstate:
+        print node.ip
+
+    # 3. Compare
+    for pnode in prevstate:
+        isavailable = False
+        for cnode in currentstate:
+            if pnode.ip == cnode.ip:
+                pnode.tag = str(pnode.tag).replace("DOWN","UP")
+                pnode.save()
+                isavailable = True
+                break
+        if isavailable == False:
+            print "Not available: " + pnode.ip
+            pnode.tag = str(pnode.tag).replace("UP","DOWN")
+            pnode.save()
+
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+    awsform = AWSForm()
+    azureform = AzureForm()
+
+    actionList = []
+    findseed = project_id + "#SEED"
+    node = Machine.nodes.get(tag__startswith=findseed)
+    actions = node.action.split("$")
+
+    for action in actions:
+        actionList.append(action)
+
+    for node in Machine.nodes.filter(tag__startswith=project_id):
+        actionList.append(node.enum)
+
+    actionList = list(set(actionList))
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+        projectList = list(set(projectList))
+        projectList.sort()
+
+
+    context = {"awsform":awsform,"azureform":azureform,"projectList": projectList, "actionList": actionList, "project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform}
+    return render(request, 'project.html', context)
 
 def action(request, project_id):
+    print "Current Project: " + project_id
     print "Start Action"
     gotoform = GoToForm()
     scanform = ScanForm()
     projectform = ProjectForm()
     newprojectform = NewProjectForm()
     cmdbform = CMDBScanForm()
-    
+    awsform = AWSForm()
+    azureform = AzureForm()
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+    projectList = list(set(projectList))
+    projectList.sort()
     action = "show"
-
-    # validation of project_id
-    print "Current Project: " + project_id
-
     if request.method == "POST":
         print "Info: Request is POST"
         print "Debug: "+ str(request.POST)
         if "goto_target" in request.POST:
             gotoform = GoToForm(request.POST)
             if gotoform.is_valid():
+                action = "goto"
                 action = "goto"
                 goto_target = gotoform.cleaned_data["goto_target"]
         elif "scanrange" in request.POST:
@@ -65,10 +176,18 @@ def action(request, project_id):
                 action="select"
                 project_id = str(projectform.cleaned_data["project"])
                 print "Project: " + project_id
+        elif "access_key" in request.POST and "access_id" in request.POST:
+                awsform = AWSForm(request.POST)
+                if awsform.is_valid():
+                    action = "aws"
+                    access_key = str(awsform.cleaned_data["access_key"])
+                    access_id = str(awsform.cleaned_data["access_id"])
+                    region = str(awsform.cleaned_data["regions"])
         elif request.FILES['cmdbfilepath']:
             print "CMDB file: " + str(request.FILES['cmdbfilepath'].name)
             action = "cmdb"
             print "Project: " + project_id
+
     else:
         action=request.GET.get("action","show")
     print "Action is : " + action
@@ -76,250 +195,151 @@ def action(request, project_id):
     if "findme" in action:
         output = getlocalinfo(project_id)
         print "Local Info: " + str(output)
-        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
-        return render(request, 'project.html', context)
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList":cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"enumList":enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        return redirect("/core/" + str(project_id) + "/action")
     elif "goto" in action:
-        output = traceroute(goto_target,33434,30,project_id)
+        output = traceroute.delay(goto_target,33434,30,project_id,True)
         print "Traceroute result: " + str(output)
-        context = {"project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+
+        addaction(project_id, "GOTO", goto_target+"@"+ str(output)+ "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), seednode )
+
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        historyList = listHistory(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "roam" in action:
-        myneighbours = roam(project_id)
+        myneighbours = roam.delay(project_id)
         print "My neighbours: " + str(myneighbours)
-        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
-        return render(request, 'project.html', context)
+        localinfo = getlocalinfo(project_id)
+        inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])
+        mylocalrange = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
+            netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
+
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+
+        addaction(project_id, "ROAM", mylocalrange+"@"+str(myneighbours)+ "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), seednode )
+
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        historyList = listHistory(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        return redirect("/core/" + str(project_id) + "/action")
     elif "clear" in action:
         clear(project_id)
         print "All clear..."
-        context = {"project_id": project_id,"newprojectform":newprojectform, "gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
-        return render(request, 'project.html', context)
+        return redirect("/core/statistics")
     elif "scan" in action:
-        scanresult = networkscan(scanrange)
+        scanresult = scan.delay(scanrange,project_id,True)
         print "Scan results: " + str(scanresult)
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
 
-        localinfo = getlocalinfo(project_id)
-        inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
-        local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
-            netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-        print "Local IP range " + local_ip_range
+        addaction(project_id, "SCAN", scanrange+"@"+str(scanresult)+ "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), seednode )
 
-        gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
-        gatewaynewnode = makeanode(gateway, subnet, project_id,1,"SCAN")
-
-        for ip in scanresult:
-            if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-                print "In local range: " + ip
-                node = makeanode(ip,subnet,project_id,2,"SCAN")
-                gatewaynewnode.connected.connect(node)
-            else:
-                print "Performing traceroute to " + ip
-                traceroute(ip,33434,30,project_id)
-        context = { "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        historyList = listHistory(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList, "projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                     "projectform": projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
     elif "select" in action:
-        print "Project List in Select: " + str(projectform.PROJECT_CHOICES)
-        context = {"project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        historyList = listHistory(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform":newprojectform,"gotoform": gotoform, "scanform": scanform,
                    "projectform": projectform}
         return redirect("/core/" + str(project_id) + "/action")
     elif "create" in action:
         output = getlocalinfo(project_id)
         print "Project created: " + output
-        # neomodel.db.set_connection('bolt://neo4j:Neo4j@localhost:7687')
-        # neomodel.Database.__init__()
         print "Reinitialized DB"
-        context = {"project_id": project_id, "newprojectform": newprojectform,
+        actionList = listActions(project_id)
+        historyList = listHistory(project_id)
+        enumList = listEnums(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id, "newprojectform": newprojectform,
                    "gotoform": gotoform,
                    "scanform": scanform,
                    "projectform": projectform,"cmdbform":cmdbform}
         return redirect("/core/" + str(project_id) + "/action")
+    elif "aws" in action:
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+        output = aws_processing.delay(access_key,access_id,region,project_id)
+        addaction(project_id, "AWS", region+"@"+str(output)+ "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), seednode)
+
+        actionList = listActions(project_id)
+        historyList = listHistory(project_id)
+        enumList = listEnums(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform": awsform, "azureform": azureform, "actionList": actionList, "historyList": historyList,
+                   "enumList": enumList, "projectList": projectList, "project_id": project_id,
+                   "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+                   "projectform": projectform, "cmdbform": cmdbform}
+        return render(request, 'project.html', context)
     elif "cmdb" in action:
-        localipstring = getlocalinfo(project_id)
-        localip = str(localipstring).split("$")[0]
-        subnet = str(localipstring).split("$")[1]
-        interface = str(localipstring).split("$")[2]
-        print "processing "+ str(len(localip)) + "local interfaces " + interface
-        cmdb_file_ips = []
-
-        gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-        print "Gateway: " + gateway
-
-        gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "SCAN")
-        localnode = makeanode(localip,subnet,project_id,0,"SCAN")
-        gatewaynewnode.connected.connect(localnode)
-
+        scanrange = []
         for line in request.FILES['cmdbfilepath']:
-            cmdb_file_ips.append(line)
-            print "scanning IP " + line
-            scanresult = networkscan(line)
-            for ip in scanresult:
-                local_ip_range = localip+"/"+str(netaddr.IPAddress(subnet).netmask_bits())
-                if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-                    print "in local range"
-                    node = makeanode(ip, subnet, project_id, 2,"CMDB")
-                    gatewaynewnode.connected.connect(node)
-                else:
-                    print "performing traceroute to " + ip
-                    traceroute(ip, 33434, 30, project_id)
-
-        print "You want to be intrusive: " + str(request.POST.get("beintrusive", None))
-        if str(request.POST.get("beintrusive", None)) == "on":
-            traceroute("google.com", 33434, 30, project_id)  # perform traceroute to (multiple?)google.com
-            local_ip_range = localip + "/" + str(netaddr.IPAddress(subnet).netmask_bits())
-            scanresult = networkscan(local_ip_range )# Scan all live LOCAL IPs
-            for ip in scanresult:
-                origin = "DISCOVERED"
-                for cmdb_file_ip in cmdb_file_ips:
-                    if netaddr.IPAddress(ip) in netaddr.IPNetwork(cmdb_file_ip):
-                        origin = "CMDB"
-                        break
-                node = makeanode(ip,subnet,project_id,2,origin)
-                gatewaynewnode.connected.connect(node)
+            scanrange.append(str(line).strip())
+        scanrange = list(set(scanrange))
+        print request.POST.get("beintrusive", None)
+        output = cmdbprocess.delay(scanrange,request.POST.get("beintrusive", None),request.FILES['cmdbfilepath'].name,project_id)
+        print "Process started " + str(output)
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+        addaction(project_id, "CMDB",str(request.FILES['cmdbfilepath']) + "@" + str(output) + "@" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),seednode)
         return redirect("/core/" + str(project_id) + "/action")
     else:
-        context = {"project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
+        if "default" in str(project_id):
+            output = getlocalinfo(project_id)
+            print "Project created: " + output
+            print "Reinitialized DB"
+        actionList = listActions(project_id)
+        enumList = listEnums(project_id)
+        historyList = listHistory(project_id)
+        cloudList = listCloud(project_id)
+        context = {"cloudList": cloudList,"awsform":awsform,"azureform":azureform,"actionList": actionList,"historyList":historyList, "enumList": enumList,"projectList":projectList, "project_id": project_id,"newprojectform":newprojectform,"gotoform":gotoform,"scanform":scanform,"projectform":projectform,"cmdbform":cmdbform}
         return render(request, 'project.html', context)
 
-def clear(project_id):
-    for allnodes in Machine.nodes.filter(tag__startswith=project_id):
-        allnodes.delete()
-    return "Info: all clear"
 
-def getlocalinfo(project):
-    localip = ""
-    subnet = ""
-    localinterface = ""
-    for interface in netifaces.interfaces():
-        print "Processing: " + interface
-        try:
-            inet_addrs = netifaces.ifaddresses(interface)
-            currentip = ipaddress.ip_address(unicode(inet_addrs[netifaces.AF_INET][0]['addr']))
-            currentsubnet = inet_addrs[netifaces.AF_INET][0]['netmask']
-            print "current ip: " + str(currentip) + " " + currentsubnet
-            if (not currentip.is_loopback and currentip.version == 4):
-                localip = str(currentip)
-                subnet = str(currentsubnet)
-                localinterface = interface
-                break #picking only first valid IP, as of now
-        except Exception as ex:
-            print ex
-    makeanode(localip, subnet, project, 0, "SEED")
-    return localip + "$" + subnet + "$" + localinterface
-
-def roam(project):
-    #  need to modify the code to enumerate the interfaces better
-    localinfo = getlocalinfo(project)
-    inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])
-    ips = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
-
-    print "IP Range: " + ips
-
-    gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
-    print "Gateway: " + gateway
-
-    subnet = localinfo.split("$")[1] # will assume same subnet for all LAN IPs
-
-    print "Subnet: " + subnet
-
-    gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN")
-    live_ip_nodes = networkscan(ips)
-
-    for ip in live_ip_nodes:
-        node = makeanode(ip,subnet,project,2,"SCAN")  # need to change the subnet ICMP Address Mask Ping (-PM)
-        gatewaynewnode.connected.connect(node)
-
-    return live_ip_nodes
-
-
-def traceroute(hostname, port, max_hops,project):
-    destination = socket.gethostbyname(hostname)
-    print "Target: " + hostname
-
-    icmp = socket.getprotobyname('icmp')
-    udp = socket.getprotobyname('udp')
-    ttl = 1
-    nodes = ""
-    edges = ""
-    localinfo = getlocalinfo(project)
-    localip = localinfo.split("$")[0]
-    subnet = localinfo.split("$")[1]
-    try:
-        previousnode = Machine.nodes.get(ip=localip,tag__startswith=project)
-    except Machine.DoesNotExist as ex:
-        previousnode = makeanode(localip,subnet,project,0,"SEED")
-
-    while True:
-        recvsock = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-        recvsock.settimeout(5)
-        sendsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, udp)
-        sendsock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-        recvsock.bind(("", port))
-        sendsock.sendto("", (hostname, port))
-        currentaddr = None
-        currenthost = None
-        try:
-            _, currentaddr = recvsock.recvfrom(512)
-            currentaddr = currentaddr[0]
+def task_state(request,project_id):
+    if request.is_ajax():
+        findseed = project_id + "#SEED"
+        seednode = Machine.nodes.get(tag__startswith=findseed)
+        tasklist = str(seednode.action).split("$")
+        for taskstring in tasklist:
+            print "Taskstring " + taskstring
             try:
-                currenthost = socket.gethostbyaddr(currentaddr)[0]
-            except socket.error:
-                currenthost = currentaddr
-        except socket.error:
-            pass
-        finally:
-            sendsock.close()
-            recvsock.close()
-
-        if currentaddr is not None:
-            currenthost = currentaddr
-            nodes += "{ id : " + str(ttl + 1) + ", group : 'device', label : '" + currenthost + "'},"
-            edges += "{ from: " + str(ttl) + ", to: " + str(ttl + 1) + " },"
-
-            if ttl<2:
-                previousnode = makeanode(currenthost, subnet,project,ttl,"TRACEROUTE")
-            else:
-                newnode = makeanode(currenthost,subnet,project,ttl,"TRACEROUTE")
-                newnode.connected.connect(previousnode)
-                previousnode = newnode
-
-        ttl += 1
-        if currentaddr == destination or ttl > max_hops:
-            break
-    return nodes + "#" + edges
-
-
-def makeanode(ip,subnet,project,distance,origin):
-    try:
-        checknode = Machine.nodes.get(ip=ip,tag__startswith=project)
-        print "Node exist: " + checknode.ip
-    except Machine.DoesNotExist as ex:
-        print "Exception: " + str(ex)
-        try:
-            hostname = socket.gethostbyaddr(ip.split("#")[0])[0]
-        except Exception as ex:
-            print "Exception: " + str(ex)
-            hostname = ip
-        print "Hostname: " + hostname
-
-        count = len(Machine.nodes.filter(distance=distance).filter(tag__startswith=project))
-        if ipaddress.ip_address(unicode(ip.split("#")[0])).is_private:
-            tag = project + "#" + origin + "#INTERNAL"
-        else:
-            tag = project + "#" + origin + "#EXTERNAL"
-
-        newnode = Machine(ip=ip, hostname=hostname, subnet=subnet,tag=tag, distance=distance,queue=count)
-        newnode.save()
-        print "New Node: " + newnode.ip
-        return newnode
-
-    return checknode
-
-
-def networkscan(scanrange):
-    nm = nmap.PortScanner()
-    if os.path.exists(os.path.dirname(scanrange)):
-        nm.scan(scanrange,arguments="-PE -sn -iL")
+                now = datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"%Y-%m-%d %H:%M")
+                tasktime = datetime.datetime.strptime(taskstring.split("@")[2],"%Y-%m-%d %H:%M")
+                if int(str(now - tasktime).split(":")[1]) < 5:
+                    task_id = taskstring.split("@")[1]
+                    print "task id " + task_id
+                    task = AsyncResult(task_id)
+                    print str(task.result) + "#" + str(task.state)
+                    if "pending" in str(str(task.result) + "#" + str(task.state)).lower():
+                        status = "Pending"
+                        status = json.dumps(status)
+                        print "Returning pending..."
+                        return HttpResponse(status, content_type='application/json')
+            except Exception as ex:
+                print str(ex)
+        status = "Success"
+        print "returning success..."
     else:
-        nm.scan(scanrange,arguments="-PE -sn") # ping scan only - can be modified
-    return nm.all_hosts()
+        status = 'This is not an ajax request'
+
+    status = json.dumps(status)
+    return HttpResponse(status, content_type='application/json')
