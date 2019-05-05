@@ -1,4 +1,4 @@
-## LET’S MAP [YOUR] NETWORK (v2.0) [![Black Hat Arsenal](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](http://www.toolswatch.org/2018/09/black-hat-arsenal-europe-2018-lineup-announced/)
+## LET’S MAP [YOUR] NETWORK (v2.0) [![Black Hat Arsenal](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](https://www.blackhat.com/eu-18/arsenal/schedule/index.html#lmyn-lets-map-your-network-12991)
 
 ### Table of Contents
 1. [WHAT IT IS](#what-it-is)
