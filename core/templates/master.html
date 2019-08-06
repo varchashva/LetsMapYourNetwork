@@ -60,6 +60,8 @@
     <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customEdgeShapes/sigma.canvas.edges.tapered.js"></script>
     <script src="/static/LetsMapYourNetwork/plugins/sigma.renderers.customNodes/sigma.canvas.nodes.def.js"></script>
     <script src="/static/plugins/jQuery/jQuery-3.3.1.min.js"></script>
+    <script src="/static/plugins/jQuery/datatables.min.js"></script>
+    <script src="/static/plugins/jQuery/datatables.min.css"></script>
     <script src="/static/bootstrap/js/bootstrap.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap-select.min.js"></script>
     <script src="/static/plugins/fastclick/fastclick.min.js"></script>
@@ -71,7 +73,7 @@
 </head>
 
 <!--start of main design-->
-<body class="skin-blue fixed" data-spy="scroll" data-target="#scrollspy" onload="updateGraph('','{{project_id}}');">
+<body class="skin-blue fixed" data-spy="scroll" data-target="#scrollspy" onload="updateGraph('','{{project_id}}',1);">
 <div class="wrapper">
     <header class="main-header">
         <a href="/core/statistics" class="logo">
@@ -144,7 +146,7 @@
                         <a href="javascript::;"><i class="glyphicon glyphicon-plus" style="color: rgb(184, 199, 206);"></i>Create Project</a>
                         <ul class="nav treeview-menu">
                             <div class="input-group">
-                                <form action="/core/{{project_id}}/action" method="POST">
+                                <form action="/core/create" method="POST">
                                     <div class="input-group-prepend">
                                        <span class="text" style="background:black"> {{newprojectform}}</span>
                                         <button type="submit" class="btn btn-primary" style="color: rgb(184, 199, 206);background-color: #2C3B41;border: none;" value="">
@@ -265,7 +267,7 @@
                 <ul class="nav treeview-menu">
                     {% load filters %}
                     {% for history in historyList %}
-                    <li><a href=""><i class="glyphicon glyphicon-minus" style="color: rgb(184, 199, 206);"></i> {{history|parsehistory}}</a></li>
+                    <li><a href=""><i class="glyphicon glyphicon-minus" style="color: rgb(184, 199, 206);font-size:10px;width:8px;"></i> <span style="font-size:10px"> {{history|parsehistory}}</span></a></li>
                     {% endfor %}
                 </ul>
             </li>

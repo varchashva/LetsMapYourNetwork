@@ -1,0 +1,96 @@
+{% extends "master.html" %}
+{% block content %}
+
+
+<script>
+$(document).ready(function(){
+  $("#searchform").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $(".dropdown-menu li").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+
+$(document).ready(function () {
+  $('#activityTable').DataTable({
+    "pagingType": "simple"
+  });
+  $('.dataTables_length').addClass('bs-select');
+});
+
+
+console.log("Starting monitoring...");
+var bgActivitiesCheckFunction = setInterval(function(){
+{% for activity in activityList %}
+    document.getElementById('historyprogressbar'.concat("{{activity.0}}")).innerHTML = "IN PROGRESS";
+    var width = document.getElementById("historyprogressbar".concat("{{activity.0}}")).style.width;
+    width = (parseInt(width.split("%")[0]) + 10)%110;
+    if (width == 0){
+        width += 10;
+    }
+    document.getElementById("historyprogressbar".concat("{{activity.0}}")).style.width = width.toString() + "%";
+    $.post("task_state", {task:"{{activity.0}}"},function(status)
+    {
+        if (status.includes("Success"))
+        {
+            console.log("Stopping montoring...");
+            document.getElementById('historyprogressbar'.concat("{{activity.0}}")).innerHTML = "COMPLETED";
+            document.getElementById("historyprogressbar".concat("{{activity.0}}")).style.width = "100%";
+            clearInterval(bgActivitiesCheckFunction);
+        }
+        else
+        {
+            console.log("Continue monitoring...");
+        }
+    });
+{% endfor %}
+
+}, 5000);
+</script>
+
+<div id="container">
+<style>
+        #activities-container {
+            top: 60;
+            bottom: 0;
+            left: 300;
+            right: 0;
+            position: absolute;
+        }
+    </style>
+    <div id="activities-container">
+        <table id = "activityTable" class="table table-striped table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Project</th>
+                    <th>Activity</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activityList %}
+                    <tr>
+                        <td>{{activity.0}}</td>
+                        <td>{{activity.1}}</td>
+                        <td>{{activity.2}}</td>
+                        <td>{{activity.3}}</td>
+                        <td>
+                            <div class="progress">
+                                <b>
+                                    <div class="progress-bar progress-bar-striped active" style="width:0%;" id= "historyprogressbar{{activity.0}}" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </b>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
