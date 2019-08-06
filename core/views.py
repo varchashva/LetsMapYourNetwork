@@ -9,21 +9,97 @@ from celery.result import AsyncResult
 import json
 from django.http import HttpResponse
 from django.template import RequestContext
+from operator import itemgetter
 
 def handler404(request):
-    response = render_to_response('statistics.html', {},context_instance=RequestContext(request))
+    response = render_to_response('statistics.html', {},context=RequestContext(request))
     return response
 
-def statistics(request):
-    all_hosts = Machine.nodes.filter(tag__ne="");
-    host_count = 0;
+
+def settings(request):
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+    awsform = AWSForm()
+    azureform = AzureForm()
 
     projectList = ["default"]
     for node in Machine.nodes:
         projectList.append(str(node.tag).split("#")[0])
-
     projectList = list(set(projectList))
     projectList.sort()
+
+    context = {"awsform": awsform, "azureform": azureform, "projectList": projectList,
+               "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform}
+
+    return render(request, 'settings.html', context)
+
+def activities(request):
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+    awsform = AWSForm()
+    azureform = AzureForm()
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+    projectList = list(set(projectList))
+    projectList.sort()
+
+    all_seed_hosts = Machine.nodes.filter(tag__contains="SEED");
+    activityList = []
+
+    for node in all_seed_hosts:
+        if str(node.action).startswith("$"):
+            #print str(node.action)
+            for activity in str(node.action).split("$"):
+                try:
+                    # format ID$Project$Activity$Time$Status
+                    activityListElement = []
+                    activityListElement.append(activity.split("@")[1])
+                    activityListElement.append(node.tag.split("#")[0])
+                    activityListElement.append(str(activity.split("@")[0]).replace("#"," -> "))
+                    activityListElement.append(activity.split("@")[2])
+                    activityList.append(activityListElement)
+
+                    if len(activityList) > 8:
+                        activityList = sorted(activityList, key=itemgetter(3), reverse=True)
+                        context = {"awsform": awsform, "azureform": azureform, "projectList": projectList,
+                                   "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+                                   "projectform": projectform, "cmdbform": cmdbform, "activityList": activityList}
+                        return render(request, 'activities.html', context)
+                except Exception as ex:
+                    print str(ex)
+
+    context = {"awsform": awsform, "azureform": azureform, "projectList": projectList,
+                "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform,"activityList": activityList}
+
+    return render(request, 'activities.html', context)
+
+def statistics(request):
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+    awsform = AWSForm()
+    azureform = AzureForm()
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+    projectList = list(set(projectList))
+    projectList.sort()
+
+    all_hosts = Machine.nodes.filter(tag__ne="");
+    host_count = 0;
 
     rogue_system_count = 0;
     down_host_count = 0;
@@ -39,7 +115,9 @@ def statistics(request):
 
     project_count = len(list(set(project_list)))
 
-    context = {"projectList":projectList,"host_count":host_count,"project_count":project_count,"rogue_system_count":rogue_system_count,"down_host_count":down_host_count}
+    context = {"awsform": awsform, "azureform": azureform, "projectList": projectList,
+               "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform,"projectList":projectList,"host_count":host_count,"project_count":project_count,"rogue_system_count":rogue_system_count,"down_host_count":down_host_count}
     return render(request, 'statistics.html', context)
 
 def index(request):
@@ -68,7 +146,7 @@ def refresh(request,project_id):
     for action in actions:
         if str(action).startswith("GOTO"):
             print str(action).split("#")[0] + "@" + str(action).split("#")[1]
-            path = traceroute(str(action).split("#")[1], 33434, 30, project_id)
+            path = traceroute(str(action).split("#")[1].split("@")[0], 33434, 30, project_id, False)
             currentstate += path
             print "Traceroute result: " + str(path)
         elif str(action).startswith("ROAM"):
@@ -78,9 +156,10 @@ def refresh(request,project_id):
             print "My neighbours: " + str(myneighbours)
         elif str(action).startswith("SCAN"):
             print str(action).split("#")[0] + "@" + str(action).split("#")[1]
-            scanresult = scan(str(action).split("#")[1], project_id)
+            scanresult = scan(str(action).split("#")[1].split("@")[0], project_id, False)
             print "Scan results: " + str(scanresult)
             currentstate += scanresult
+
     print "Current state:"
     print len(currentstate)
     for node in currentstate:
@@ -131,6 +210,43 @@ def refresh(request,project_id):
     context = {"awsform":awsform,"azureform":azureform,"projectList": projectList, "actionList": actionList, "project_id": project_id, "newprojectform": newprojectform, "gotoform": gotoform, "scanform": scanform,
                "projectform": projectform, "cmdbform": cmdbform}
     return render(request, 'project.html', context)
+
+def create(request):
+    gotoform = GoToForm()
+    scanform = ScanForm()
+    projectform = ProjectForm()
+    newprojectform = NewProjectForm()
+    cmdbform = CMDBScanForm()
+    awsform = AWSForm()
+    azureform = AzureForm()
+
+    projectList = ["default"]
+    for node in Machine.nodes:
+        projectList.append(str(node.tag).split("#")[0])
+    projectList = list(set(projectList))
+    projectList.sort()
+
+    newprojectform = NewProjectForm(request.POST)
+    print "In new project create block"
+    if newprojectform.is_valid():
+        project_id = str(newprojectform.cleaned_data["newproject"])
+        action = "create"
+        print "New Project: " + project_id
+
+    output = getlocalinfo(project_id)
+    print "Project created: " + output
+    print "Reinitialized DB"
+    actionList = listActions(project_id)
+    historyList = listHistory(project_id)
+    enumList = listEnums(project_id)
+    cloudList = listCloud(project_id)
+    context = {"cloudList": cloudList, "awsform": awsform, "azureform": azureform, "actionList": actionList,
+               "historyList": historyList, "enumList": enumList, "projectList": projectList, "project_id": project_id,
+               "newprojectform": newprojectform,
+               "gotoform": gotoform,
+               "scanform": scanform,
+               "projectform": projectform, "cmdbform": cmdbform}
+    return redirect("/core/" + str(project_id) + "/action")
 
 def action(request, project_id):
     print "Current Project: " + project_id
@@ -314,28 +430,43 @@ def action(request, project_id):
         return render(request, 'project.html', context)
 
 
-def task_state(request,project_id):
+def task_state(request):
     if request.is_ajax():
-        findseed = project_id + "#SEED"
-        seednode = Machine.nodes.get(tag__startswith=findseed)
-        tasklist = str(seednode.action).split("$")
-        for taskstring in tasklist:
-            print "Taskstring " + taskstring
-            try:
-                now = datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"%Y-%m-%d %H:%M")
-                tasktime = datetime.datetime.strptime(taskstring.split("@")[2],"%Y-%m-%d %H:%M")
-                if int(str(now - tasktime).split(":")[1]) < 5:
-                    task_id = taskstring.split("@")[1]
-                    print "task id " + task_id
-                    task = AsyncResult(task_id)
-                    print str(task.result) + "#" + str(task.state)
-                    if "pending" in str(str(task.result) + "#" + str(task.state)).lower():
-                        status = "Pending"
-                        status = json.dumps(status)
-                        print "Returning pending..."
-                        return HttpResponse(status, content_type='application/json')
-            except Exception as ex:
-                print str(ex)
+        try:
+            if "project_id" in str(request.POST.get("task","Invalid")):
+                project_id = str(request.POST.get("task","Invalid")).split("#")[1]
+                findseed = project_id + "#SEED"
+                seednode = Machine.nodes.get(tag__startswith=findseed)
+                tasklist = str(seednode.action).split("$")
+                for taskstring in tasklist:
+                    print "Taskstring " + taskstring
+                    try:
+                        now = datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"%Y-%m-%d %H:%M")
+                        tasktime = datetime.datetime.strptime(taskstring.split("@")[2], "%Y-%m-%d %H:%M")
+                        if int(str(now - tasktime).split(":")[1]) < 5:
+                            task_id = taskstring.split("@")[1]
+                            print "task id " + task_id
+                            task = AsyncResult(task_id)
+                            print str(task.result) + "#" + str(task.state)
+                            if "pending" in str(str(task.result) + "#" + str(task.state)).lower():
+                                status = "Pending"
+                                status = json.dumps(status)
+                                print "Returning pending..."
+                                return HttpResponse(status, content_type='application/json')
+                    except Exception as ex:
+                        print str(ex)
+                status = "Success"
+                print "returning success..."
+            else:
+                task = AsyncResult(request.POST.get("task","Invalid"))
+                #print str(task.result) + "#" + str(task.state)
+                if "pending" in str(str(task.result) + "#" + str(task.state)).lower():
+                    status = "Pending"
+                    status = json.dumps(status)
+                    print "Returning pending..."
+                    return HttpResponse(status, content_type='application/json')
+        except Exception as ex:
+            print str(ex)
         status = "Success"
         print "returning success..."
     else:

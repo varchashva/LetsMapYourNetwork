@@ -33,7 +33,7 @@ var bgActivitiesCheckFunction = setInterval(function(){
     $('#graph-container').empty();
     updateGraph(filterString, window.location.href.split("/")[4],0);
 
-    $.post("task_state",function(status)
+    $.post("task_state",{task:"project_id#".concat(window.location.href.split("/")[4])},function(status)
     {
         if (status.includes("Success"))
         {
@@ -143,7 +143,7 @@ function updateGraph(filter, project_id, makestable)
         {
             url: 'http://localhost:7474', user: 'neo4j', password: 'Neo4j'
         },
-            'MATCH (n) WHERE not(n.tag =~ ".*#SEED.*") AND n.tag =~ ".*'+ project_id +'.*" ' + filter + 'OPTIONAL MATCH (n)-[r]->(m) RETURN n,r ORDER BY n.distance, n.queue',
+            'MATCH (n) WHERE n.tag =~ ".*'+ project_id +'.*" ' + filter + 'OPTIONAL MATCH (n)-[r]->(m) RETURN n,r ORDER BY n.distance, n.queue',
             {
                 container: 'graph-container',
                 type: 'canvas',

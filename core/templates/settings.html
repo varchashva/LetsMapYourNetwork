@@ -1,0 +1,56 @@
+{% extends "master.html" %}
+{% block content %}
+
+
+
+<script>
+$(document).ready(function(){
+  $("#searchform").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+    $(".dropdown-menu li").filter(function() {
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+  });
+});
+
+$(document).ready(function () {
+  $('#settingTable').DataTable({
+    "pagingType": "simple"
+  });
+  $('.dataTables_length').addClass('bs-select');
+});
+
+</script>
+
+<div id="container">
+<style>
+        #settings-container {
+            top: 60;
+            bottom: 0;
+            left: 300;
+            right: 0;
+            position: absolute;
+        }
+    </style>
+    <div id="settings-container">
+        <table id = "settingTable" class="table table-striped table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Monitoring</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projectList %}
+                    <tr>
+                        <td>{{project}}</td>
+                        <td><input id="monitoring{{project}}" type="checkbox"></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+

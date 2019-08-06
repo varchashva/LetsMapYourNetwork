@@ -15,6 +15,7 @@ import boto.ec2
 @shared_task
 def roam(project):
     #  need to modify the code to enumerate the interfaces better
+    returnList = []
     localinfo = getlocalinfo(project)
     inet_addrs = netifaces.ifaddresses(localinfo.split("$")[2])
     ips = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
@@ -24,17 +25,20 @@ def roam(project):
     subnet = localinfo.split("$")[1] # will assume same subnet for all LAN IPs
     print "Subnet: " + subnet
     gatewaynewnode = makeanode(gateway, subnet,project,1,"SCAN","",True)
+    returnList.append(gatewaynewnode)
     addaction(project,"ROAM",ips,gatewaynewnode)
     live_ip_nodes = networkscan(ips)
 
     for ip in live_ip_nodes:
         node = makeanode(ip,subnet,project,2,"SCAN","",True)
+        returnList.append(node)
         gatewaynewnode.connected.connect(node)
         addaction(project, "ROAM", ips, node)
-    return {"Status":True}
+    return returnList
 
 @shared_task
 def traceroute(hostname, port, max_hops,project,doaddaction):
+    returnList = []
     destination = socket.gethostbyname(hostname)
     print "Target: " + hostname
 
@@ -47,6 +51,7 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
     localip = localinfo.split("$")[0]
     subnet = localinfo.split("$")[1]
     previousnode = makeanode(localip,subnet,project,0,"SEED","",True)
+    returnList.append(previousnode)
     if doaddaction:
         addaction(project,"GOTO",hostname,previousnode)
 
@@ -77,7 +82,7 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
             nodes += "{ id : " + str(ttl + 1) + ", group : 'device', label : '" + currenthost + "'},"
             edges += "{ from: " + str(ttl) + ", to: " + str(ttl + 1) + " },"
             newnode = makeanode(currenthost,subnet,project,ttl,"TRACEROUTE","",True)
-
+            returnList.append(newnode)
             previousnode.connected.connect(newnode)
             previousnode = newnode
             if doaddaction:
@@ -85,7 +90,7 @@ def traceroute(hostname, port, max_hops,project,doaddaction):
         ttl += 1
         if currentaddr == destination or ttl > max_hops:
             break
-    return {"Status":True}
+    return returnList
 
 def makeanode(ip,subnet,project,distance,origin,enum,doenum):
     try:
@@ -140,9 +145,11 @@ def makeanode(ip,subnet,project,distance,origin,enum,doenum):
 
 @shared_task
 def scan(scanrange,project_id,doaddaction):
+    print "Starting scan: " + str(scanrange)
+    returnlist = []
     localinfo = getlocalinfo(project_id)
     inet_addrs = netifaces.ifaddresses(
-        localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces propoerly
+        localinfo.split("$")[2])  # need to modify the code to enumerate the interfaces properly
     local_ip_range = netifaces.gateways()['default'][netifaces.AF_INET][0] + "/" + str(
         netaddr.IPAddress(inet_addrs[netifaces.AF_INET][0]['netmask']).netmask_bits())
     print "Local IP range " + local_ip_range
@@ -150,7 +157,9 @@ def scan(scanrange,project_id,doaddaction):
     gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
     subnet = inet_addrs[netifaces.AF_INET][0]['netmask']  # will assume same subnet for all LAN IPs
     gatewaynewnode = makeanode(gateway, subnet, project_id, 1, "SCAN", "",True)
+    returnlist.append(gatewaynewnode)
     localnode = makeanode(localinfo.split("$")[0],localinfo.split("$")[1],project_id,0,"SEED","",True)
+    returnlist.append(localnode)
     localnode.connected.connect(gatewaynewnode)
 
     if doaddaction:
@@ -161,18 +170,26 @@ def scan(scanrange,project_id,doaddaction):
         if netaddr.IPNetwork(scanrange).is_private():
             scanresult = networkscan(scanrange)
             for ip in scanresult:
-                if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
-                    print "In local range: " + ip
-                    node = makeanode(ip, subnet, project_id, 2, "SCAN", "",True)
-                    gatewaynewnode.connected.connect(node)
-                    if doaddaction:
-                        addaction(project_id,"SCAN",scanrange,node)
-                else:
-                    print "Not in local range " + ip
-                    print "Performing traceroute to " + ip
-                    print traceroute(ip,33434, 30, project_id,False)
+                try:
+                    if netaddr.IPAddress(ip) in netaddr.IPNetwork(local_ip_range):
+                        print "In local range: " + ip
+                        node = makeanode(ip, subnet, project_id, 2, "SCAN", "",True)
+                        returnlist.append(node)
+                        gatewaynewnode.connected.connect(node)
+                        if doaddaction:
+                            addaction(project_id,"SCAN",scanrange,node)
+                    else:
+                        print "Not in local range " + ip
+                        print "Performing traceroute to " + ip
+                        print traceroute(ip,33434, 30, project_id,False)
+                except Exception as ex:
+                    print str(ex)
+                    print ip
+                    print str(node)
+                    print returnlist
     except Exception as ex:
         try:
+            print str(ex)
             socket.gethostbyname(scanrange)
             print "Not an internal IP " + scanrange
             print "Performing traceroute to " + scanrange
@@ -182,7 +199,7 @@ def scan(scanrange,project_id,doaddaction):
             print "Invalid input " + scanrange
             print str(ex)
 
-    return {"Status":True}
+    return returnlist
 
 def networkscan(scanrange):
     nm = nmap.PortScanner()
@@ -320,6 +337,7 @@ def addaction(project_id,action, param, node):
         node.action = node.action + "$" + action + "#" + param
         node.save()
         print "Action updated: " + node.action
+
 
 @shared_task
 def cmdbprocess(scanrange,beintrusive,filename,project_id):
