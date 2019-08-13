@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="218" height="20">
+
+<linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+<stop offset="1" stop-opacity=".1"/>
+</linearGradient>
+<mask id="a">
+<rect width="158" height="20" rx="3" fill="#fff"/>
+</mask>
+<g mask="url(#a)">
+<path fill="#555" d="M0 0h123v50H0z"/>
+<path fill="#007ec6" d="M73 0h125v50H73z"/>
+<path fill="url(#b)" d="M0 0h248v50H0z"/>
+</g>
+
+<g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+<text x="36.5" y="15" fill="#010101" fill-opacity=".3">
+Defcon27
+</text>
+<text x="36.5" y="14">
+Defcon27
+</text>
+
+<text x="114.5" y="15" fill="#010101" fill-opacity=".3">
+Demolabs
+</text>
+<text x="114.5" y="14">
+Demolabs
+</text></g></svg>
