@@ -1,6 +1,7 @@
 ## LET’S MAP [YOUR] NETWORK (v2.0) 
 [![BHEU2019](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](https://www.blackhat.com/eu-18/arsenal/schedule/index.html#lmyn-lets-map-your-network-12991)
-[![BHUSA2019](images/BHUSA2019.svg)](https://www.blackhat.com/us-19/arsenal/schedule/index.html#lmyn-lets-map-your-network-14974)[![Defcon27](images/defcon27.svg)](https://www.defcon.org/html/defcon-27/dc-27-demolabs.html#LMYN)
+[![BHUSA2019](images/BHUSA2019.svg)](https://www.blackhat.com/us-19/arsenal/schedule/index.html#lmyn-lets-map-your-network-14974)
+[![Defcon27](images/defcon27.svg)](https://www.defcon.org/html/defcon-27/dc-27-demolabs.html#LMYN)
 
 ### Table of Contents
 1. [WHAT IT IS](#what-it-is)
