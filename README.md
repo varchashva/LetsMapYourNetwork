@@ -1,4 +1,6 @@
-## LET’S MAP [YOUR] NETWORK (v2.0) [![Black Hat Arsenal](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](https://www.blackhat.com/eu-18/arsenal/schedule/index.html#lmyn-lets-map-your-network-12991)
+## LET’S MAP [YOUR] NETWORK (v2.0) 
+[![BHEU2019](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](https://www.blackhat.com/eu-18/arsenal/schedule/index.html#lmyn-lets-map-your-network-12991)
+[![BHUSA2019](images/BHUSA2019.svg)](https://www.blackhat.com/us-19/arsenal/schedule/index.html#lmyn-lets-map-your-network-14974)[![Defcon27](images/defcon27.svg)](https://www.defcon.org/html/defcon-27/dc-27-demolabs.html#LMYN)
 
 ### Table of Contents
 1. [WHAT IT IS](#what-it-is)
@@ -55,6 +57,9 @@ Below technologies have been used in the tool:
 
 #### Network with traceroute to mulitple destinations
 ![LMYN IN ACTION](images/LMYN_2.gif)
+
+#### CMDB Upload
+![LMYN IN ACTION](images/LMYN_4.gif)
 
 #### Cloud network
 ![LMYN IN ACTION](images/LMYN_3.gif)
