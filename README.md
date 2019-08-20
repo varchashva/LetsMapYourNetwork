@@ -1,4 +1,6 @@
-## LET’S MAP [YOUR] NETWORK (v2.0) 
+## Omniscient - Let’s Map [Your] Network (v2.0) 
+[![Logo](images/omniscient_logo.png)]()
+
 [![BHEU2019](https://github.com/jopohl/badges/blob/master/arsenal/europe/2018.svg)](https://www.blackhat.com/eu-18/arsenal/schedule/index.html#lmyn-lets-map-your-network-12991)
 [![BHUSA2019](images/BHUSA2019.svg)](https://www.blackhat.com/us-19/arsenal/schedule/index.html#lmyn-lets-map-your-network-14974)
 [![Defcon27](images/defcon27.svg)](https://www.defcon.org/html/defcon-27/dc-27-demolabs.html#LMYN)
@@ -15,6 +17,7 @@
 9. [Contributer](#contributer)
 10. [LMYN In Action](#lmyn-in-action)
 11. [Roadmap](Roadmap.md)
+12. [Contact Information](#contact-information)
 
 ### WHAT IT IS ###
 
@@ -65,4 +68,9 @@ Below technologies have been used in the tool:
 #### Cloud network
 ![LMYN IN ACTION](images/LMYN_3.gif)
 
-Shoot any suggestion/complain/bug to varchashva \[at] gmail \[dot] com
+### Contact Information
+
+ - Email: varchashva \[at] gmail \[dot] com
+ - LinkedIn: https://www.linkedin.com/in/pramod-rana-696ba062
+ - Twitter: https://twitter.com/IAmVarchashva
+
